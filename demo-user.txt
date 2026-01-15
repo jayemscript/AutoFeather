@@ -1,0 +1,28 @@
+role = Moderator
+email = moderator@mail.com
+password = @Moderator#321
+passkey = 123456
+
+role = Administrator
+email = admin@mail.com
+password = @SysAdmin#321
+passkey = 123456
+
+role = Researcher
+email = researcher.demo@mail.com
+password = @Researcher#321
+passkey = 123456
+
+
+role = Poultry-Operator
+email = poultryoperator.demo@mail.com
+password = @PoultryOperator#321
+passkey = 123456
+
+
+role = Monitoring-Manager
+email = monitoringmanager.demo@mail.com
+password = @MonitoringManager#321
+passkey = 123456
+
+TEST
