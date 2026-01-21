@@ -1,0 +1,11 @@
+python -m venv venv 
+
+source venv/Scripts/activate
+
+
+deactivate
+
+
+pip install -r requirements.txt
+
+then good to go

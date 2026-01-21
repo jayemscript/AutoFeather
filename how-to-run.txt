@@ -1,0 +1,27 @@
+first open this folder in vscode 
+it supposed contain all the files in AutoFeather
+
+
+```Step 1
+after it opens in vscode 
+ctrl + j to open terminal
+open two terminal using ctrl + shift + f5 
+```
+
+```step 2
+on first terminal type this 
+"cd client" then enter
+then type this 
+"npm run dev" then enter
+```
+
+```step 3
+on second terminal type this
+"cd server"
+"npm run start:dev" then enter
+```
+
+then open on web browser
+
+http://localhost:3000
+or copy or ctrl + click on the link 
