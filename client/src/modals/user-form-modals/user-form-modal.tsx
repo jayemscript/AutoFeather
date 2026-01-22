@@ -11,7 +11,6 @@ import { CheckIcon, XIcon, EyeIcon, EyeOffIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import RolePicker from './role-picker';
 import PermissionPicker from './permission-picker';
-import EmployeePicker from './employee-picker';
 import AccessPicker from './access-picker';
 import { OTPInput, SlotProps } from 'input-otp';
 import { cn } from '@/lib/utils';
@@ -104,18 +103,6 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
                 selectedRole={formData.roleId} // Pass the selected role
               />
             </div>
-            {/* <div className="flex flex-col space-y-2">
-              <Label htmlFor="emp">Assign Employee</Label>
-              <EmployeePicker
-                value={formData.employeeId}
-                onSelect={(emp) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    employeeId: emp,
-                  }))
-                }
-              />
-            </div> */}
             <div className="flex flex-col space-y-2">
               <Label htmlFor="fullname">Full Name</Label>
               <Input

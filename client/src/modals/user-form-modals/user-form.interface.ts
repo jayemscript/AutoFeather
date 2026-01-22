@@ -1,5 +1,3 @@
-import { StudentRecord } from "@/api/protected/student-api/interfaces/student.interface";
-
 export interface UserFormModalProps {
   open: boolean;
   close: () => void;
