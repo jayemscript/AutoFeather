@@ -37,6 +37,7 @@ const allRoutes = [
   { label: 'Account Information', value: '/account' },
   { label: 'Notifications', value: '/notifications' },
   { label: 'Temperature Monitoring', value: '/temperature-monitoring' },
+  { label: 'Chicken Breed Library', value: '/chicken-breed-library' },
 ];
 const adminRoutes = [
   {

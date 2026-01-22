@@ -9,6 +9,7 @@ export const roleAccessMap: Record<string, string[]> = {
     '/profile',
     '/account',
     '/temperature-monitoring',
+    '/chicken-breed-library',
   ],
   moderator: [
     '/admin/users',
@@ -20,6 +21,7 @@ export const roleAccessMap: Record<string, string[]> = {
     '/profile',
     '/account',
     '/temperature-monitoring',
+    '/chicken-breed-library',
   ],
   user: [
     '/admin/users',
@@ -31,6 +33,7 @@ export const roleAccessMap: Record<string, string[]> = {
     '/profile',
     '/account',
     '/temperature-monitoring',
+    '/chicken-breed-library',
   ],
   researcher: [
     '/admin/users',
@@ -42,6 +45,7 @@ export const roleAccessMap: Record<string, string[]> = {
     '/profile',
     '/account',
     '/temperature-monitoring',
+    '/chicken-breed-library',
   ],
 
   'poultry-operator': [
@@ -50,6 +54,7 @@ export const roleAccessMap: Record<string, string[]> = {
     '/profile',
     '/account',
     '/temperature-monitoring',
+    '/chicken-breed-library',
   ],
 
   'monitoring-manager': [
@@ -62,5 +67,6 @@ export const roleAccessMap: Record<string, string[]> = {
     '/profile',
     '/account',
     '/temperature-monitoring',
+    '/chicken-breed-library',
   ],
 };

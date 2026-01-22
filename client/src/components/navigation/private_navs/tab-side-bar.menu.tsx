@@ -64,6 +64,11 @@ const menuConfig = {
     role: [],
   },
 
+  chickenBreedLibrary: {
+    path: '/chicken-breed-library',
+    label: 'Chicken Breed Library',
+    role: [],
+  },
 };
 
 // Helper function to create menu items with icons
@@ -85,6 +90,7 @@ export const AdministrativeMenuItems: MenuItems[] = createMenuItems([
   'adminPermissions',
   'adminAuditLogs',
   'temperatureMonitoring',
+  'chickenBreedLibrary',
 ]);
 
 export const ResearcherMenuItems: MenuItems[] = createMenuItems([
@@ -94,11 +100,13 @@ export const ResearcherMenuItems: MenuItems[] = createMenuItems([
   'adminPermissions',
   'adminAuditLogs',
   'temperatureMonitoring',
+  'chickenBreedLibrary',
 ]);
 
 export const PoultryOperatorMenutItems: MenuItems[] = createMenuItems([
   'dashboard',
   'temperatureMonitoring',
+  'chickenBreedLibrary',
 ]);
 
 export const MonitoringManagerMenutItems: MenuItems[] = createMenuItems([
@@ -108,4 +116,5 @@ export const MonitoringManagerMenutItems: MenuItems[] = createMenuItems([
   'adminPermissions',
   'adminAuditLogs',
   'temperatureMonitoring',
+  'chickenBreedLibrary',
 ]);
