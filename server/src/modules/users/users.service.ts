@@ -402,8 +402,6 @@ export class UsersService {
     const user = await this.userRepository.findOne({
       where: { id },
       relations: [
-        'studentId',
-        'employeeId',
         'authLogs',
         'userPermissions',
         'notifications',
@@ -464,8 +462,6 @@ export class UsersService {
       where: { id },
       withDeleted: true,
       relations: [
-        'studentId',
-        'employeeId',
         'authLogs',
         'userPermissions',
         'notifications',
