@@ -63,7 +63,7 @@ export class CreateChickenBreadDto {
 
   @IsNumber()
   @IsOptional()
-  average_weight: number;
+  averageWeight: number;
 
   @IsString()
   @IsOptional()

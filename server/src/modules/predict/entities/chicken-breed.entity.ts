@@ -62,7 +62,7 @@ export class ChickenBreed extends BaseEntity {
     scale: 2,
     nullable: true,
   })
-  average_weight?: number;
+  averageWeight?: number;
 
   // ---- Behavior & resilience ----
   @Column({ name: 'temperament', nullable: true })
