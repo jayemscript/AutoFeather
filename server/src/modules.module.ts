@@ -11,6 +11,7 @@ import { SystemModule } from './modules/system/system.module';
 import { SmsModule } from './modules/sms/sms.module';
 import { MailerModule } from './modules/mailer/mailer.module';
 import { SensorsModule } from './modules/sensors/sensors.module';
+import { PredictModule } from './modules/predict/predict.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { SensorsModule } from './modules/sensors/sensors.module';
     SmsModule,
     MailerModule,
     SensorsModule,
+    PredictModule,
   ],
   exports: [
     HealthModule,
@@ -38,6 +40,7 @@ import { SensorsModule } from './modules/sensors/sensors.module';
     SmsModule,
     MailerModule,
     SensorsModule,
+    PredictModule,
   ],
 })
 export class ModulesModule {}

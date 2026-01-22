@@ -19,6 +19,7 @@ import { AuditLog } from 'src/modules/audit/entities/audit-log.entity';
 import { Notifications } from 'src/modules/notifications/entities/notification.entity';
 import { Mailer } from './modules/mailer/entities/mailer.entity';
 import { SensorsModule } from './modules/sensors/sensors.module';
+import { ChickenBreed } from 'src/modules/predict/entities/chicken-breed.entity';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { SensorsModule } from './modules/sensors/sensors.module';
             AuditLog,
             Notifications,
             Mailer,
+            ChickenBreed,
           ],
           synchronize: configService.get<string>('NODE_ENV') === 'development',
           ssl: isSSL ? { rejectUnauthorized: false } : false,

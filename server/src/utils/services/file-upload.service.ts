@@ -159,6 +159,51 @@ export class FileUploadService {
   }
 
   /**
+   * Check if a file exists (local or Cloudinary)
+   */
+  async checkFileExists(filePathOrUrl: string): Promise<boolean> {
+    if (!filePathOrUrl) return false;
+
+    try {
+      // 🔹 Check local file
+      if (filePathOrUrl.startsWith('/uploads/')) {
+        const localPath = path.join(process.cwd(), filePathOrUrl);
+        return fs.existsSync(localPath);
+      }
+
+      // 🔹 Check Cloudinary file
+      if (filePathOrUrl.includes('res.cloudinary.com')) {
+        const publicId = this.extractCloudinaryPublicId(filePathOrUrl);
+        if (!publicId) return false;
+
+        try {
+          const result = await cloudinary.api.resource(publicId, {
+            resource_type: 'image',
+          });
+          return !!result;
+        } catch (error) {
+          // Resource not found in Cloudinary
+          if (error.error?.http_code === 404) {
+            return false;
+          }
+          // Other errors (network, auth, etc.) - assume file might exist
+          console.warn(
+            `Cloudinary check failed for ${publicId}:`,
+            error.message,
+          );
+          return false;
+        }
+      }
+
+      // Unknown URL format
+      return false;
+    } catch (error) {
+      console.error('Error checking file existence:', error);
+      return false;
+    }
+  }
+
+  /**
    * Extract Cloudinary public_id from URL
    */
   private extractCloudinaryPublicId(url: string): string | null {
