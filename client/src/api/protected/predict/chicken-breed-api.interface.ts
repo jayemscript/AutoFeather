@@ -49,7 +49,6 @@ export interface ChickenBreedRequest {
   temperament: string;
   climateTolerance: string;
   broodiness: boolean;
-  preparedBy: UserData | null;
 }
 
 export interface ChickenBreedReponse {

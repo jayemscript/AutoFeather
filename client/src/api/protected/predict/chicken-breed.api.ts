@@ -45,6 +45,6 @@ export async function updateChickenBreedRecord(
   id: string,
   updateRecord: Partial<ChickenBreedRequest>,
 ): Promise<any> {
-  return handleRequest(axios.patch(`/chicken-breed/${id}`, updateRecord));
+  return handleRequest(axios.patch(`/chicken-breed/update/${id}`, updateRecord));
 }
 

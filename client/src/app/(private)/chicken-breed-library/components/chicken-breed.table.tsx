@@ -11,6 +11,7 @@ export default function ChickenBreedTable() {
     handleCopy,
     cardComponent,
     checkboxActions,
+    renderFormModal,
   } = useChickenBreedTableLogic();
 
   return (
@@ -48,7 +49,7 @@ export default function ChickenBreedTable() {
         defaultViewType="row"
       />
 
-      {/* {renderAssetBaseFormModal()} */}
+      {renderFormModal()}
       {/* {renderAssetDetailsDrawer()} */}
       {/* {renderAuditLogsViewer()} */}
     </div>
