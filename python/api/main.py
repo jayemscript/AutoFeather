@@ -32,11 +32,11 @@ async def startup_event():
     """Print model configuration on startup"""
     model_info = config.get_model_info()
     print("=" * 60)
-    print("🚀 Image Classification API Starting...")
-    print(f"📦 Model Path: {model_info['model_path']}")
-    print(f"✅ Model Exists: {model_info['model_exists']}")
+    print("Image Classification API Starting...")
+    print(f"Model Path: {model_info['model_path']}")
+    print(f"Model Exists: {model_info['model_exists']}")
     if model_info['model_size_mb']:
-        print(f"📊 Model Size: {model_info['model_size_mb']} MB")
+        print(f"Model Size: {model_info['model_size_mb']} MB")
     print("=" * 60)
 
 @app.get("/")
