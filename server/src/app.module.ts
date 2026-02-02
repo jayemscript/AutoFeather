@@ -20,6 +20,7 @@ import { Notifications } from 'src/modules/notifications/entities/notification.e
 import { Mailer } from './modules/mailer/entities/mailer.entity';
 import { SensorsModule } from './modules/sensors/sensors.module';
 import { ChickenBreed } from 'src/modules/predict/entities/chicken-breed.entity';
+import { PredictionRecords } from './modules/predict/entities/predict-entity';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { ChickenBreed } from 'src/modules/predict/entities/chicken-breed.entity'
             Notifications,
             Mailer,
             ChickenBreed,
+            PredictionRecords,
           ],
           synchronize: configService.get<string>('NODE_ENV') === 'development',
           ssl: isSSL ? { rejectUnauthorized: false } : false,
