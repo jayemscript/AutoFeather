@@ -26,7 +26,19 @@ import { AuditLogs } from '@/api/protected/audit.api';
 import DrawerComponent from '@/components/customs/drawer.component';
 import AuditLogsViewer from '@/components/customs/audit-logs-viewer';
 import { Button } from '@/components/ui/button';
-import { Bird, Copy, Edit, Egg, Feather, Heart, MapPin, MoreHorizontal, Palette, Scale, Thermometer } from 'lucide-react';
+import {
+  Bird,
+  Copy,
+  Edit,
+  Egg,
+  Feather,
+  Heart,
+  MapPin,
+  MoreHorizontal,
+  Palette,
+  Scale,
+  Thermometer,
+} from 'lucide-react';
 
 export function useChickenBreedTableLogic() {
   const [refreshFn, setRefreshFn] = useState<(() => void) | null>(null);
@@ -123,6 +135,13 @@ export function useChickenBreedTableLogic() {
       const response = await GetAllChickenBreedPaginated(params);
       if (!response.chicken_breed_records)
         throw new Error('Invalid response structure');
+
+      return {
+        data: response.chicken_breed_records,
+        totalItems: response.totalItems,
+        totalPages: response.totalPages,
+        currentPage: response.currentPage,
+      };
     } catch (error) {
       showToastError(
         'Fetch Failed',
@@ -247,185 +266,193 @@ export function useChickenBreedTableLogic() {
     },
   ];
 
-const cardComponent = ({ row }: { row: ChickenBreedInfo }) => {
-  const cardData = row;
+  const cardComponent = ({ row }: { row: ChickenBreedInfo }) => {
+    const cardData = row;
 
-  const getPurposeColor = (purpose: BreedPurposeEnum) => {
-    switch (purpose) {
-      case BreedPurposeEnum.EGG:
-        return 'bg-amber-100 text-amber-700 border-amber-200';
-      case BreedPurposeEnum.MEAT:
-        return 'bg-rose-100 text-rose-700 border-rose-200';
-      case BreedPurposeEnum.DUAL:
-        return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-      default:
-        return 'bg-gray-100 text-gray-700 border-gray-200';
-    }
+    const getPurposeColor = (purpose: BreedPurposeEnum) => {
+      switch (purpose) {
+        case BreedPurposeEnum.EGG:
+          return 'bg-amber-100 text-amber-700 border-amber-200';
+        case BreedPurposeEnum.MEAT:
+          return 'bg-rose-100 text-rose-700 border-rose-200';
+        case BreedPurposeEnum.DUAL:
+          return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+        default:
+          return 'bg-gray-100 text-gray-700 border-gray-200';
+      }
+    };
+
+    return (
+      <div className="group relative flex flex-col h-full bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
+        {/* Image Section */}
+        <div className="relative h-48 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
+          {cardData.image ? (
+            <img
+              src={cardData.image}
+              alt={cardData.chickenName}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Bird className="h-16 w-16 text-gray-400" />
+            </div>
+          )}
+
+          {/* Purpose Badge */}
+          <div className="absolute top-3 left-3">
+            <span
+              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getPurposeColor(cardData.purpose)}`}
+            >
+              {cardData.purpose.charAt(0).toUpperCase() +
+                cardData.purpose.slice(1)}
+            </span>
+          </div>
+
+          {/* Menu */}
+          <div className="absolute top-3 right-3">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="h-8 w-8 p-0 bg-white/90 hover:bg-white backdrop-blur-sm"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+
+                <DropdownMenuItem onClick={() => handleCopy(cardData.code)}>
+                  <Copy className="mr-2 h-4 w-4" /> Copy Code
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
+
+                <PermissionWrapper permission="Update">
+                  <DropdownMenuItem onClick={() => handleEditRecord(cardData)}>
+                    <Edit className="mr-2 h-4 w-4" /> Edit Record
+                  </DropdownMenuItem>
+                </PermissionWrapper>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        {/* Content Section */}
+        <div className="flex-1 flex flex-col p-4">
+          {/* Header */}
+          <div className="mb-3">
+            <h3 className="text-lg font-semibold text-gray-900 line-clamp-1">
+              {cardData.chickenName}
+            </h3>
+            <p className="text-xs text-gray-500 italic mt-0.5">
+              {cardData.scientificName}
+            </p>
+            <p className="text-xs text-gray-400 font-mono mt-1">
+              {cardData.code}
+            </p>
+          </div>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="flex items-center gap-2 text-xs">
+              <div className="p-1.5 rounded-lg bg-blue-50">
+                <Egg className="h-3.5 w-3.5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-gray-500">Eggs/Year</p>
+                <p className="font-semibold text-gray-900">
+                  {cardData.eggPerYear}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 text-xs">
+              <div className="p-1.5 rounded-lg bg-purple-50">
+                <Scale className="h-3.5 w-3.5 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-gray-500">Weight</p>
+                <p className="font-semibold text-gray-900">
+                  {cardData.averageWeight} kg
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 text-xs">
+              <div className="p-1.5 rounded-lg bg-orange-50">
+                <Palette className="h-3.5 w-3.5 text-orange-600" />
+              </div>
+              <div>
+                <p className="text-gray-500">Egg Color</p>
+                <p className="font-semibold text-gray-900 capitalize">
+                  {cardData.eggColor}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 text-xs">
+              <div className="p-1.5 rounded-lg bg-green-50">
+                <MapPin className="h-3.5 w-3.5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-gray-500">Origin</p>
+                <p className="font-semibold text-gray-900 line-clamp-1">
+                  {cardData.originCountry}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Traits */}
+          <div className="space-y-2 mb-3">
+            <div className="flex items-center gap-2 text-xs">
+              <Feather className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+              <span className="text-gray-600">Plumage:</span>
+              <span className="font-medium text-gray-900 capitalize">
+                {cardData.plumageColor}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 text-xs">
+              <Heart className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+              <span className="text-gray-600">Temperament:</span>
+              <span className="font-medium text-gray-900 capitalize">
+                {cardData.temperament}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 text-xs">
+              <Thermometer className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+              <span className="text-gray-600">Climate:</span>
+              <span className="font-medium text-gray-900 capitalize">
+                {cardData.climateTolerance}
+              </span>
+            </div>
+          </div>
+
+          {/* Broodiness Badge */}
+          {cardData.broodiness && (
+            <div className="mt-auto pt-3 border-t border-gray-100">
+              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-pink-50 text-pink-700 border border-pink-200">
+                <Bird className="h-3 w-3 mr-1" />
+                Broody
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
-  return (
-    <div className="group relative flex flex-col h-full bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
-      {/* Image Section */}
-      <div className="relative h-48 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
-        {cardData.image ? (
-          <img
-            src={cardData.image}
-            alt={cardData.chickenName}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Bird className="h-16 w-16 text-gray-400" />
-          </div>
-        )}
-
-        {/* Purpose Badge */}
-        <div className="absolute top-3 left-3">
-          <span
-            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getPurposeColor(cardData.purpose)}`}
-          >
-            {cardData.purpose.charAt(0).toUpperCase() +
-              cardData.purpose.slice(1)}
-          </span>
-        </div>
-
-        {/* Menu */}
-        <div className="absolute top-3 right-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="h-8 w-8 p-0 bg-white/90 hover:bg-white backdrop-blur-sm"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-
-              <DropdownMenuItem onClick={() => handleCopy(cardData.code)}>
-                <Copy className="mr-2 h-4 w-4" /> Copy Code
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-
-              <PermissionWrapper permission="Update">
-                <DropdownMenuItem onClick={() => handleEditRecord(cardData)}>
-                  <Edit className="mr-2 h-4 w-4" /> Edit Record
-                </DropdownMenuItem>
-              </PermissionWrapper>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-
-      {/* Content Section */}
-      <div className="flex-1 flex flex-col p-4">
-        {/* Header */}
-        <div className="mb-3">
-          <h3 className="text-lg font-semibold text-gray-900 line-clamp-1">
-            {cardData.chickenName}
-          </h3>
-          <p className="text-xs text-gray-500 italic mt-0.5">
-            {cardData.scientificName}
-          </p>
-          <p className="text-xs text-gray-400 font-mono mt-1">
-            {cardData.code}
-          </p>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="flex items-center gap-2 text-xs">
-            <div className="p-1.5 rounded-lg bg-blue-50">
-              <Egg className="h-3.5 w-3.5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-gray-500">Eggs/Year</p>
-              <p className="font-semibold text-gray-900">
-                {cardData.eggPerYear}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 text-xs">
-            <div className="p-1.5 rounded-lg bg-purple-50">
-              <Scale className="h-3.5 w-3.5 text-purple-600" />
-            </div>
-            <div>
-              <p className="text-gray-500">Weight</p>
-              <p className="font-semibold text-gray-900">
-                {cardData.averageWeight} kg
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 text-xs">
-            <div className="p-1.5 rounded-lg bg-orange-50">
-              <Palette className="h-3.5 w-3.5 text-orange-600" />
-            </div>
-            <div>
-              <p className="text-gray-500">Egg Color</p>
-              <p className="font-semibold text-gray-900 capitalize">
-                {cardData.eggColor}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 text-xs">
-            <div className="p-1.5 rounded-lg bg-green-50">
-              <MapPin className="h-3.5 w-3.5 text-green-600" />
-            </div>
-            <div>
-              <p className="text-gray-500">Origin</p>
-              <p className="font-semibold text-gray-900 line-clamp-1">
-                {cardData.originCountry}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Traits */}
-        <div className="space-y-2 mb-3">
-          <div className="flex items-center gap-2 text-xs">
-            <Feather className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-            <span className="text-gray-600">Plumage:</span>
-            <span className="font-medium text-gray-900 capitalize">
-              {cardData.plumageColor}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2 text-xs">
-            <Heart className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-            <span className="text-gray-600">Temperament:</span>
-            <span className="font-medium text-gray-900 capitalize">
-              {cardData.temperament}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2 text-xs">
-            <Thermometer className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-            <span className="text-gray-600">Climate:</span>
-            <span className="font-medium text-gray-900 capitalize">
-              {cardData.climateTolerance}
-            </span>
-          </div>
-        </div>
-
-        {/* Broodiness Badge */}
-        {cardData.broodiness && (
-          <div className="mt-auto pt-3 border-t border-gray-100">
-            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-pink-50 text-pink-700 border border-pink-200">
-              <Bird className="h-3 w-3 mr-1" />
-              Broody
-            </span>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-
+  return {
+    columns,
+    fetchData,
+    handleSetRefreshFn,
+    handleNewAddRecord,
+    handleCopy,
+    cardComponent,
+    checkboxActions,
+  };
 }
