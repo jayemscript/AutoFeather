@@ -23,6 +23,22 @@ except Exception as e:
     prediction_service = None
 
 
+class SingleImageRequest(BaseModel):
+    """Model for single image classification request"""
+    image: str = Field(
+        ...,
+        description="Base64 encoded image",
+        example="iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+    )
+    
+    @validator('image')
+    def validate_image(cls, v):
+        """Validate that image is not empty"""
+        if not v or not v.strip():
+            raise ValueError("Image cannot be empty")
+        return v
+
+
 # Request Models
 class ImageRequest(BaseModel):
     """Model for image classification request"""
@@ -154,12 +170,12 @@ async def predict(request: ImageRequest) -> PredictionResponse:
     summary="Predict single image classification",
     description="Classify a single image using YOLOv8 model"
 )
-async def predict_single(image: str) -> PredictionResponse:
+async def predict_single(request: SingleImageRequest) -> PredictionResponse:
     """
     Predict classification for a single image
     
     Args:
-        image: Base64 encoded image string
+        request: SingleImageRequest containing base64 encoded image string
         
     Returns:
         PredictionResponse with classification result
@@ -175,7 +191,7 @@ async def predict_single(image: str) -> PredictionResponse:
         logger.info("Received single image prediction request")
         
         # Predict single image
-        result = prediction_service.predict_single_image(image)
+        result = prediction_service.predict_single_image(request.image)
         
         return PredictionResponse(
             status="success",
