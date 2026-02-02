@@ -25,6 +25,7 @@ import { showToastSuccess, showToastError } from '@/utils/toast-config';
 import { PredictionInfo } from '@/api/protected/predict/predict-api.interface';
 import { GetAllPredictionPaginated } from '@/api/protected/predict/predict-api';
 import { MoreHorizontal } from 'lucide-react';
+import PredictionFormModal from './predict-form';
 
 export function usePredictionTableLogic() {
   const [refreshFn, setRefreshFn] = useState<(() => void) | null>(null);
@@ -186,14 +187,14 @@ export function usePredictionTableLogic() {
     cardComponent,
     checkboxActions,
 
-    // renderFormModal: () => (
-    //   <ChickenBreedFormModal
-    //     open={modalOpen}
-    //     close={closeModal}
-    //     onSuccess={handleModalSuccess}
-    //     mode={modalMode}
-    //     initialData={selectedRecord}
-    //   />
-    // ),
+    renderFormModal: () => (
+      <PredictionFormModal
+        open={modalOpen}
+        close={closeModal}
+        onSuccess={handleModalSuccess}
+        mode={modalMode}
+        initialData={selectedRecord}
+      />
+    ),
   };
 }

@@ -18,7 +18,7 @@ export interface PredictionRequest {
   title: string;
   description: string;
   image: string;
-  chickenBreed: ChickenBreedInfo | null;
+  chickenBreed: string;
   temperature: number;
   humidity: number;
 }

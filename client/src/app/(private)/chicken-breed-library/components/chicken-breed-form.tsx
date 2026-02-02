@@ -79,18 +79,29 @@ const ChickenBreedFormModal: React.FC<FormModalProps> = ({
   } = useChickenBreedFormLogic(open, close, mode, initialData, onSuccess);
 
   useEffect(() => {
-    if (isConfirmed) setIsConfirmed(false);
+    if (isConfirmed) {
+      setIsConfirmed(false);
+    }
   }, [formData]);
+
+  const handlePreview = () => {
+    setShowPreview(true);
+  };
+
+  const handleConfirmSubmit = () => {
+    setShowPreview(false);
+    setIsConfirmed(true);
+    handleCancel();
+  };
 
   const handleActionClick = () => {
     if (isConfirmed) {
-      handleSubmit(true);
+      handleSubmit(true); // proceed with actual submission
       setIsConfirmed(false);
     } else {
-      setShowPreview(true);
+      handlePreview(); // open preview first
     }
   };
-
   return (
     <>
       <Modal
@@ -381,15 +392,24 @@ const ChickenBreedFormModal: React.FC<FormModalProps> = ({
       <FormPreviewer
         isOpen={showPreview}
         onClose={() => setShowPreview(false)}
-        onSave={() => {
-          setShowPreview(false);
-          setIsConfirmed(true);
-        }}
+        onSave={handleConfirmSubmit}
         headerTitle="Review Chicken Breed"
         disabled={mode === 'edit' ? !hasChanges : !isFormValid}
       >
         <ScrollArea>
-          <div className="space-y-2">
+          <div className="bg-muted/50 border border-border rounded-lg p-4 space-y-2">
+            {formData?.image && (
+              <div className="flex flex-col items-center mb-4 pb-4 border-b border-border/30">
+                <span className="text-sm text-muted-foreground font-medium mb-2">
+                  Previous Image
+                </span>
+                <img
+                  src={formData.image}
+                  alt="Previous Chicken Breed"
+                  className="w-full h-full object-cover rounded-lg border border-primary/30 shadow-sm"
+                />
+              </div>
+            )}
             <PreviewField label="Code" value={formData.code} />
             <PreviewField label="Breed Name" value={formData.chickenName} />
             <PreviewField
