@@ -11,6 +11,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import UserListOnline from '@/components/sections/dashboards/user-list-online';
 import { formatDate } from '@syntaxsentinel/date-utils';
+import PredictTable from './prediction/predict-table';
 import { hasRole } from '@/utils/role.utils';
 
 export default function DashboardPageContent() {
@@ -35,7 +36,8 @@ export default function DashboardPageContent() {
         </div>
 
         <div className="m-5 p-5 space-y-4">
-          <UserListOnline />
+          {/* <UserListOnline /> */}
+          <PredictTable />
         </div>
       </div>
     </div>

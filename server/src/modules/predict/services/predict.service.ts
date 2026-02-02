@@ -161,7 +161,7 @@ export class PredictionService {
         sortBy: (sortBy?.trim() as keyof PredictionRecords) || 'createdAt',
         sortOrder: sortOrder || 'desc',
         dataKey: 'prediction_records',
-        relations: ['preparedBy'],
+        relations: ['preparedBy', 'chickenBreed'],
         filters: parsedFilters,
         withDeleted: true,
       },

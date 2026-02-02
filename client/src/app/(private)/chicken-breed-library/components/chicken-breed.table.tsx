@@ -44,7 +44,7 @@ export default function ChickenBreedTable() {
         enableCard={true}
         cardComponent={cardComponent}
         enableUrlSync={true}
-        storageKey="asset_records"
+        storageKey="chicken_breed_records"
         enableViewToggle={true}
         defaultViewType="row"
       />
