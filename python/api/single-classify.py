@@ -2,7 +2,7 @@ import sys
 import os
 from ultralytics import YOLO
 
-MODEL_PATH = "../dataset/content/feather_density/yolov8_cls/weights/best.pt"
+MODEL_PATH = "../model/final-version/weights/best.pt"
 
 def classify(image_path):
     if not os.path.exists(image_path):
