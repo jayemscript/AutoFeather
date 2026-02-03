@@ -12,6 +12,7 @@ export default function PredictTable() {
     cardComponent,
     checkboxActions,
     renderFormModal,
+    renderDetailsModal,
   } = usePredictionTableLogic();
 
   return (
@@ -50,6 +51,7 @@ export default function PredictTable() {
       />
 
       {renderFormModal()}
+      {renderDetailsModal()}
       {/* {renderAssetDetailsDrawer()} */}
       {/* {renderAuditLogsViewer()} */}
     </div>
