@@ -33,7 +33,7 @@ export class FuzzyLogicService {
     humidity?: number,
   ): Promise<FuzzyLogicResult> {
     this.logger.log(
-      `🔬 Starting Fuzzy Logic Inference - Density: ${featherDensity}, Temp: ${temperature}°C, Humidity: ${humidity ?? 'N/A'}%`,
+      `Starting Fuzzy Logic Inference - Density: ${featherDensity}, Temp: ${temperature}°C, Humidity: ${humidity ?? 'N/A'}%`,
     );
 
     // ==========================================
