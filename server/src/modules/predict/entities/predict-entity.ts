@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from 'src/shared/entities/base-entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import { ChickenBreed } from '../entities/chicken-breed.entity';
@@ -8,37 +8,58 @@ export class PredictionRecords extends BaseEntity {
   @Column({ name: 'title', type: 'varchar', nullable: false })
   title: string;
 
-  @Column({ name: 'descrition', type: 'text', nullable: true })
+  @Column({ name: 'description', type: 'text', nullable: true })
   description?: string;
 
   @Column({ name: 'image', type: 'text', nullable: false })
   image: string;
 
-  //FK
-
+  // Foreign Key: Chicken Breed
   @ManyToOne(() => ChickenBreed, { nullable: true, eager: true })
   @JoinColumn({ name: 'chicken_breed_id' })
   chickenBreed?: ChickenBreed;
 
-  // Image Classfication from api
-
+  // --------------------
+  // IMAGE CLASSIFICATION RESULT (from Python YOLOv8 API)
+  // --------------------
   @Column({
     type: 'jsonb',
     nullable: true,
-    comment: 'Image classficiation Inference Result',
+    comment: 'Image classification inference result from YOLOv8',
   })
   classification: {
-    modelVersion: string;
+    modelVersion?: string;
     featherDensity: 'LOW' | 'HIGH';
     confidence: number;
     inferenceTimeMs?: number;
-    raw?: Record<string, any>;
+    raw?: {
+      class: string;
+      confidence: number;
+      speed: {
+        preprocess_ms: number;
+        inference_ms: number;
+        postprocess_ms: number;
+        total_ms: number;
+      };
+      image_info?: {
+        original_shape: number[];
+        model_input_shape: number[];
+      };
+      top5_predictions?: Array<{
+        class: string;
+        confidence: number;
+      }>;
+      all_classes_count?: number;
+    };
   };
 
-  @Column({ type: 'float' })
+  // --------------------
+  // ENVIRONMENTAL PARAMETERS
+  // --------------------
+  @Column({ name: 'temperature', type: 'float', nullable: false })
   temperature: number;
 
-  @Column({ type: 'float', nullable: true })
+  @Column({ name: 'humidity', type: 'float', nullable: true })
   humidity?: number;
 
   // --------------------
@@ -47,15 +68,24 @@ export class PredictionRecords extends BaseEntity {
   @Column({
     type: 'jsonb',
     nullable: true,
-    comment: 'Fuzzy logic inference result',
+    comment: 'Fuzzy logic inference result for fertility prediction',
   })
   fuzzyResult: {
-    fertilityScore: number; // 0–100
+    fertilityScore: number; // 0-100
     fertilityLevel: 'LOW' | 'MEDIUM' | 'HIGH';
     ruleStrengths?: Record<string, number>;
+    inputs?: {
+      featherDensity: 'LOW' | 'HIGH';
+      temperature: number;
+      humidity?: number;
+    };
+    explanation?: string;
   };
 
-  @ManyToOne(() => User, { eager: true, nullable: true })
+  // --------------------
+  // METADATA
+  // --------------------
+  @ManyToOne(() => User, { eager: true, nullable: false })
   @JoinColumn({ name: 'prepared_by_id' })
   preparedBy: User;
 }

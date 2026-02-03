@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-
+import { ConfigModule } from '@nestjs/config';
 //services
 import { ChickenBreedService } from './services/chicken-breed.service';
 import { PredictionService } from './services/predict.service';
@@ -17,13 +17,21 @@ import { AuditModule } from '../audit/audit.module';
 import { AuthModule } from 'src/modules/auth/auth.module';
 import { FileUploadService } from 'src/utils/services/file-upload.service';
 
+import { PythonApiService } from './services/python-api.service';
+import { FuzzyLogicService } from './services/fuzzy-logic.service';
 //entities
 import { ChickenBreed } from './entities/chicken-breed.entity';
 import { PredictionRecords } from './entities/predict-entity';
 
 @Module({
   controllers: [ChickenBreedController, PredictionController],
-  providers: [FileUploadService, ChickenBreedService, PredictionService],
+  providers: [
+    FileUploadService,
+    ChickenBreedService,
+    PredictionService,
+    PythonApiService,
+    FuzzyLogicService,
+  ],
   imports: [
     TypeOrmModule.forFeature([User, ChickenBreed, PredictionRecords]),
     SharedModule,
@@ -32,6 +40,11 @@ import { PredictionRecords } from './entities/predict-entity';
     AuditModule,
     AuthModule,
   ],
-  exports: [ChickenBreedService, PredictionService],
+  exports: [
+    ChickenBreedService,
+    PredictionService,
+    FuzzyLogicService,
+    PythonApiService,
+  ],
 })
 export class PredictModule {}

@@ -22,6 +22,13 @@ import { PredictionService } from '../services/predict.service';
 export class PredictionController {
   constructor(private readonly predictService: PredictionService) {}
 
+  /**
+   * Create new prediction record
+   * - Uploads image
+   * - Calls Python API for feather density classification
+   * - Applies fuzzy logic for fertility prediction
+   * - Stores results in database
+   */
   @Post('create')
   @HttpCode(HttpStatus.CREATED)
   async createPredictionRecord(
@@ -37,9 +44,19 @@ export class PredictionController {
       status: 'success',
       message: 'Prediction Record Created successfully',
       data: result,
+      insights: {
+        featherDensity: result.classification?.featherDensity,
+        confidence: result.classification?.confidence,
+        fertilityLevel: result.fuzzyResult?.fertilityLevel,
+        fertilityScore: result.fuzzyResult?.fertilityScore,
+        explanation: result.fuzzyResult?.explanation,
+      },
     };
   }
 
+  /**
+   * Get all prediction records with pagination
+   */
   @Get('get-all-paginated')
   @HttpCode(HttpStatus.OK)
   async getAllPaginatedPredictionRecord(
@@ -63,6 +80,45 @@ export class PredictionController {
       status: 'success',
       message: 'All Records Fetched Successfully',
       ...result,
+    };
+  }
+
+  /**
+   * Get single prediction record by ID
+   */
+  @Get(':id')
+  @HttpCode(HttpStatus.OK)
+  async getPredictionById(@Param('id') id: string) {
+    const result = await this.predictService.getPredictionById(id);
+
+    return {
+      status: 'success',
+      message: 'Record Fetched Successfully',
+      data: result,
+    };
+  }
+
+  /**
+   * Recompute fuzzy logic for existing record
+   * Useful if temperature/humidity is updated or you want to recalculate
+   */
+  @Post(':id/recompute-fuzzy')
+  @HttpCode(HttpStatus.OK)
+  async recomputeFuzzyLogic(
+    @Param('id') id: string,
+    @GetUser() currentUser: User,
+  ) {
+    const result = await this.predictService.recomputeFuzzyLogic(id);
+
+    return {
+      status: 'success',
+      message: 'Fuzzy logic recomputed successfully',
+      data: result,
+      insights: {
+        fertilityLevel: result.fuzzyResult?.fertilityLevel,
+        fertilityScore: result.fuzzyResult?.fertilityScore,
+        explanation: result.fuzzyResult?.explanation,
+      },
     };
   }
 }
