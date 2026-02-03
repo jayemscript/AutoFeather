@@ -48,7 +48,7 @@ export class FuzzyLogicService {
     // Thermal Comfort Index (TCI) - based on temperature
     const tci = this.calculateThermalComfortIndex(temperature, humidity);
 
-    this.logger.log(`📊 Fuzzification: FDS=${fds}, TCI=${tci}`);
+    this.logger.log(`Fuzzification: FDS=${fds}, TCI=${tci}`);
 
     // Fuzzy membership values
     const featherMembership = this.fuzzifyFeatherDensity(fds);
