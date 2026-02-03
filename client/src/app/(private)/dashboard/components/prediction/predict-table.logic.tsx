@@ -140,8 +140,12 @@ export function usePredictionTableLogic() {
           )}
         </div>
       ),
+      enableSorting: false,
+      enableHiding: false,
     },
     {
+      enableSorting: false,
+      enableHiding: false,
       accessorKey: 'classification.featherDensity',
       header: 'Feather Density',
       cell: ({ row }) => {
@@ -165,6 +169,8 @@ export function usePredictionTableLogic() {
       },
     },
     {
+      enableSorting: false,
+      enableHiding: false,
       accessorKey: 'fuzzyResult.fertilityLevel',
       header: 'Fertility',
       cell: ({ row }) => {
@@ -184,6 +190,8 @@ export function usePredictionTableLogic() {
       },
     },
     {
+      enableSorting: false,
+      enableHiding: false,
       accessorKey: 'temperature',
       header: 'Environment',
       cell: ({ row }) => (
