@@ -21,7 +21,6 @@ import {
   FormGrid,
   FormField,
 } from '@/components/customs/form-layout';
-import SingleImageUploader from '@/components/customs/single-image-uploader';
 import FormPreviewer from '@/components/customs/form-previewer';
 import { PreviewField } from '@/components/customs/preview-field';
 
@@ -30,6 +29,7 @@ import { Eye, Hash, RotateCcw } from 'lucide-react';
 import { FormModalProps } from '@/interfaces/shared.interface';
 import usePredictionFormLogic from './predict-form.logic';
 import ChickenPicker from './chicken-picker';
+import ImageCapture from './image-capture';
 
 const FIELD_HELPERS = {
   title: 'Any Title for this Prediction',
@@ -140,12 +140,12 @@ const PredictionFormModal: React.FC<FormModalProps> = ({
             {/* IMAGE */}
             <FormSection
               title="Chicken Image"
-              description="Upload an image of the breed"
+              description="Upload an image or use camera to capture the breed"
               icon={<GiRooster />}
             >
               <FormGrid columns={1}>
                 <FormField label="Image">
-                  <SingleImageUploader
+                  <ImageCapture
                     value={formData.image}
                     onChange={(value) =>
                       setFormData((prev) => ({
@@ -153,7 +153,6 @@ const PredictionFormModal: React.FC<FormModalProps> = ({
                         image: value || '',
                       }))
                     }
-                    valueType="base64"
                     maxSizeMB={5}
                   />
                 </FormField>
@@ -257,18 +256,18 @@ const PredictionFormModal: React.FC<FormModalProps> = ({
             {formData?.image && (
               <div className="flex flex-col items-center mb-4 pb-4 border-b border-border/30">
                 <span className="text-sm text-muted-foreground font-medium mb-2">
-                  Previous Image
+                  Chicken Image
                 </span>
                 <img
                   src={formData.image}
-                  alt="Previous Chicken Breed"
+                  alt="Chicken Breed"
                   className="w-full h-full object-cover rounded-lg border border-primary/30 shadow-sm"
                 />
               </div>
             )}
             <PreviewField label="Title" value={formData.title} />
             <PreviewField label="Breed Name" value={formData.chickenBreed?.chickenName || ''} />
-              <PreviewField label="Temperature" value={formData.temperature} />
+            <PreviewField label="Temperature" value={formData.temperature} />
             <PreviewField label="Humidity" value={formData.humidity} />
             <PreviewField label="Description" value={formData.description} />
           </div>
