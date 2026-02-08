@@ -1,7 +1,6 @@
-// src/modules/sensors/services/temperature-sensor.service.ts
-
 import { Injectable, Logger } from '@nestjs/common';
 import { SocketService } from 'src/modules/sockets/socket.service';
+import axios from 'axios';
 
 export interface TemperatureData {
   temperature: number;
@@ -10,54 +9,62 @@ export interface TemperatureData {
   unit: string;
 }
 
+export interface HumidityData {
+  humidity: number;
+  timestamp: Date;
+  sensorId: string;
+  unit: string;
+}
+
 @Injectable()
 export class TemperatureSensorService {
   private readonly logger = new Logger(TemperatureSensorService.name);
-  private simulationInterval: NodeJS.Timeout | null = null;
-  private isSimulating = false;
-
-  // Store latest ESP32 data
-  private latestESP32Data: TemperatureData | null = null;
+  private latestRaspberryPiData: TemperatureData | null = null;
+  private broadcastInterval: NodeJS.Timeout | null = null;
+  private isBroadcasting = false;
+  private readonly fastApiUrl = 'http://localhost:5000';
 
   constructor(private readonly socketService: SocketService) {}
 
-  /**
-   * Generate realistic temperature data for fishpond (25-32°C optimal range)
-   * FOR SIMULATION MODE ONLY
-   */
-  private generateTemperatureData(): TemperatureData {
-    const baseTemp = 28;
-    const variation = (Math.random() - 0.5) * 4;
-    const temperature = parseFloat((baseTemp + variation).toFixed(2));
+  handleTemperatureFromRaspberryPi(payload: any) {
+    if (payload.status !== 'success' || !payload.data) {
+      this.logger.warn('Received invalid data from Raspberry Pi');
+      return { status: 'error', message: 'Invalid data format' };
+    }
 
-    return {
-      temperature,
-      timestamp: new Date(),
-      sensorId: 'TEMP_SENSOR_01',
-      unit: '°C',
+    const data: TemperatureData = {
+      temperature: payload.data.temperature,
+      timestamp: new Date(payload.data.timestamp),
+      sensorId: payload.data.sensorId,
+      unit: payload.data.unit,
     };
+
+    this.latestRaspberryPiData = data;
+
+    this.logger.log(
+      `Raspberry Pi temperature: ${data.temperature}°C from ${data.sensorId}`,
+    );
+
+    this.socketService.broadcast('sensor:temperature', data);
+
+    return { status: 'received' };
   }
 
-  /**
-   * Start broadcasting temperature data
-   * SIMULATION: Generates fake data every interval
-   * ESP32 MODE: Just broadcasts the latest ESP32 data every interval
-   */
-  startTemperatureSimulation(intervalMs = 3000) {
-    if (this.isSimulating) {
+  async startTemperatureSimulation(intervalMs = 3000) {
+    if (this.isBroadcasting) {
       this.logger.warn('Temperature broadcasting is already running');
       return { message: 'Broadcasting already running' };
     }
 
-    this.isSimulating = true;
+    this.isBroadcasting = true;
     this.logger.log(
       `Starting temperature broadcasting (interval: ${intervalMs}ms)`,
     );
 
-    this.sendTemperatureData();
+    await this.fetchAndBroadcastTemperature();
 
-    this.simulationInterval = setInterval(() => {
-      this.sendTemperatureData();
+    this.broadcastInterval = setInterval(async () => {
+      await this.fetchAndBroadcastTemperature();
     }, intervalMs);
 
     return {
@@ -66,79 +73,76 @@ export class TemperatureSensorService {
     };
   }
 
-  /**
-   * Stop broadcasting temperature data
-   */
   stopTemperatureSimulation() {
-    if (!this.isSimulating) {
+    if (!this.isBroadcasting) {
       this.logger.warn('No broadcasting is currently running');
       return { message: 'No broadcasting running' };
     }
 
-    if (this.simulationInterval) {
-      clearInterval(this.simulationInterval);
-      this.simulationInterval = null;
+    if (this.broadcastInterval) {
+      clearInterval(this.broadcastInterval);
+      this.broadcastInterval = null;
     }
 
-    this.isSimulating = false;
+    this.isBroadcasting = false;
     this.logger.log('Temperature broadcasting stopped');
 
     return { message: 'Temperature broadcasting stopped' };
   }
 
-  /**
-   * Send temperature data via WebSocket
-   * SIMULATION MODE: Uses generateTemperatureData()
-   * ESP32 MODE: Uses latest ESP32 data (comment out generateTemperatureData line)
-   */
-  sendTemperatureData() {
-    // SIMULATION MODE: Generate fake data
-    const data = this.generateTemperatureData();
+  private async fetchAndBroadcastTemperature() {
+    try {
+      const response = await axios.get(`${this.fastApiUrl}/sensor/temp`);
+      
+      if (response.data.status === 'success' && response.data.data) {
+        const data: TemperatureData = {
+          temperature: response.data.data.temperature,
+          timestamp: new Date(response.data.data.timestamp),
+          sensorId: response.data.data.sensorId,
+          unit: response.data.data.unit,
+        };
 
-    // ESP32 MODE: Use real data from ESP32
-    // Uncomment these lines and comment out the line above when using ESP32:
-    // if (!this.latestESP32Data) return;
-    // const data = this.latestESP32Data;
+        this.latestRaspberryPiData = data;
 
-    this.logger.log(
-      `Broadcasting temperature: ${data.temperature}°C at ${data.timestamp.toISOString()}`,
-    );
+        this.logger.log(
+          `Broadcasting temperature: ${data.temperature}°C`,
+        );
 
-    this.socketService.broadcast('sensor:temperature', data);
-
-    return data;
+        this.socketService.broadcast('sensor:temperature', data);
+      } else {
+        this.logger.warn('Failed to fetch temperature data from FastAPI');
+      }
+    } catch (error) {
+      this.logger.error(`Error fetching temperature from FastAPI: ${error.message}`);
+    }
   }
 
-  /**
-   * Handle temperature data from ESP32
-   * Stores the latest data and broadcasts it immediately
-   * FOR ESP32 MODE
-   */
-  handleTemperatureESP32(payload: any) {
-    const data: TemperatureData = {
-      temperature: payload.data.temperature,
-      timestamp: new Date(),
-      sensorId: payload.data.sensorId,
-      unit: payload.data.unit,
-    };
-
-    // Store latest ESP32 data
-    this.latestESP32Data = data;
-
-    this.logger.log(
-      `ESP32 temperature: ${data.temperature}°C from ${data.sensorId}`,
-    );
-
-    // Broadcast immediately when received from ESP32
-    this.socketService.broadcast('sensor:temperature', data);
-
-    return { status: 'received' };
+  async getTemperatureData() {
+    try {
+      const response = await axios.get(`${this.fastApiUrl}/sensor/temp`);
+      return response.data;
+    } catch (error) {
+      this.logger.error(`Error fetching temperature: ${error.message}`);
+      return { status: 'error', message: 'Failed to fetch temperature data' };
+    }
   }
 
-  /**
-   * Cleanup on service destroy
-   */
+  async getHumidityData() {
+    try {
+      const response = await axios.get(`${this.fastApiUrl}/sensor/hum`);
+      return response.data;
+    } catch (error) {
+      this.logger.error(`Error fetching humidity: ${error.message}`);
+      return { status: 'error', message: 'Failed to fetch humidity data' };
+    }
+  }
+
+  getLatestTemperature() {
+    return this.latestRaspberryPiData;
+  }
+
   onModuleDestroy() {
     this.stopTemperatureSimulation();
+    this.logger.log('Temperature sensor service shutting down');
   }
 }

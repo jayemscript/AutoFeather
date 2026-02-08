@@ -1,21 +1,16 @@
-"""
-FastAPI Main Application
-Image Classification API using YOLOv8
-"""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from predict_controller import router as predict_router
+from sensor_controller import router as sensor_router
 import uvicorn
 import config
 
-# Initialize FastAPI app
 app = FastAPI(
     title=config.API_TITLE,
     description=config.API_DESCRIPTION,
     version=config.API_VERSION
 )
 
-# Configure CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=config.CORS_ORIGINS if "*" not in config.CORS_ORIGINS else ["*"],
@@ -24,12 +19,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
 app.include_router(predict_router, prefix="/api", tags=["Prediction"])
+app.include_router(sensor_router, tags=["Sensor"])
 
 @app.on_event("startup")
 async def startup_event():
-    """Print model configuration on startup"""
     model_info = config.get_model_info()
     print("=" * 60)
     print("Image Classification API Starting...")
@@ -41,7 +35,6 @@ async def startup_event():
 
 @app.get("/")
 async def root():
-    """Health check endpoint"""
     model_info = config.get_model_info()
     return {
         "status": "success",
@@ -53,7 +46,6 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """Detailed health check"""
     model_info = config.get_model_info()
     return {
         "status": "success",
