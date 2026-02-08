@@ -63,6 +63,52 @@ export default function usePredictionFormLogic(
   const [showPreview, setShowPreview] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
 
+    const [tempLoading, setTempLoading] = useState(false);
+  const [humLoading, setHumLoading] = useState(false);
+
+  const getTempData = async () => {
+    try {
+      setTempLoading(true);
+      const res = await fetch('http://localhost:5000/sensor/temp');
+      const json = await res.json();
+
+      const temperature = json?.data?.temperature;
+
+      setFormData((prev) => ({
+        ...prev,
+        temperature,
+      }));
+
+      showToastSuccess('Temperature updated', `${temperature} °C`);
+    } catch (err) {
+      showToastError('Failed', 'Cannot fetch temperature');
+    } finally {
+      setTempLoading(false);
+    }
+  };
+
+  const getHumData = async () => {
+    try {
+      setHumLoading(true);
+      const res = await fetch('http://localhost:5000/sensor/hum');
+      const json = await res.json();
+
+      const humidity = json?.data?.humidity;
+
+      setFormData((prev) => ({
+        ...prev,
+        humidity,
+      }));
+
+      showToastSuccess('Humidity updated', `${humidity} %`);
+    } catch (err) {
+      showToastError('Failed', 'Cannot fetch humidity');
+    } finally {
+      setHumLoading(false);
+    }
+  };
+
+
   const handleReset = () => {
     setFormData(getInitialFormData(initialData));
     setIsConfirmed(false);
@@ -215,5 +261,10 @@ export default function usePredictionFormLogic(
     showPreview,
     isConfirmed,
     loading,
+
+        getTempData,
+    getHumData,
+    tempLoading,
+    humLoading,
   };
 }

@@ -63,6 +63,10 @@ const PredictionFormModal: React.FC<FormModalProps> = ({
     setShowPreview,
     showPreview,
     isConfirmed,
+    getTempData,
+    getHumData,
+    tempLoading,
+    humLoading,
   } = usePredictionFormLogic(open, close, mode, initialData, onSuccess);
 
   useEffect(() => {
@@ -196,21 +200,41 @@ const PredictionFormModal: React.FC<FormModalProps> = ({
                   helper={FIELD_HELPERS.temperature}
                   required
                 >
-                  <Input
-                    type="number"
-                    name="temperature"
-                    value={formData.temperature}
-                    onChange={handleChange}
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      name="temperature"
+                      value={formData.temperature}
+                      onChange={handleChange}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={getTempData}
+                      disabled={tempLoading}
+                    >
+                      {tempLoading ? '...' : 'Get'}
+                    </Button>
+                  </div>
                 </FormField>
 
                 <FormField label="Humidity" helper={FIELD_HELPERS.humidity}>
-                  <Input
-                    type="number"
-                    name="humidity"
-                    value={formData.humidity}
-                    onChange={handleChange}
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      name="humidity"
+                      value={formData.humidity}
+                      onChange={handleChange}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={getHumData}
+                      disabled={humLoading}
+                    >
+                      {humLoading ? '...' : 'Get'}
+                    </Button>
+                  </div>
                 </FormField>
 
                 <FormField
@@ -266,7 +290,10 @@ const PredictionFormModal: React.FC<FormModalProps> = ({
               </div>
             )}
             <PreviewField label="Title" value={formData.title} />
-            <PreviewField label="Breed Name" value={formData.chickenBreed?.chickenName || ''} />
+            <PreviewField
+              label="Breed Name"
+              value={formData.chickenBreed?.chickenName || ''}
+            />
             <PreviewField label="Temperature" value={formData.temperature} />
             <PreviewField label="Humidity" value={formData.humidity} />
             <PreviewField label="Description" value={formData.description} />
