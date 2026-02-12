@@ -123,7 +123,7 @@ export default function TabSideBar({ isOpen, onClose }: TabSideBarProps) {
           href={item.path}
           className={`flex items-center space-x-3 p-2 rounded-md cursor-pointer transition-colors duration-200 ${
             isActive
-              ? 'text-black bg-sidebar-accent dark:bg-sidebar-primary text-[0.8em] dark:text-gray-700'
+              ? 'text-black bg-background dark:bg-primary  text-[0.8em] dark:text-gray-700'
               : 'text-black dark:text-black hover:bg-zinc-300 hover:text-black dark:hover:bg-zinc-200 dark:hover:text-black bg-white text-[0.8em]'
           }`}
         >
