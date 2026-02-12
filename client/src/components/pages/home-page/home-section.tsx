@@ -12,7 +12,7 @@ import { ThemeButtons } from '@/components/customs/theme-buttons';
 
 export default function HomeSection() {
   return (
-    <section className="min-h-screen bg-background text-foreground flex items-center justify-center px-6">
+    <section className="min-h-screen bg-background/70 text-foreground flex items-center justify-center px-6">
       <div className="w-full max-w-7xl">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left: Description */}
@@ -29,12 +29,12 @@ export default function HomeSection() {
 
               <h1 className="text-5xl font-bold leading-tight tracking-tight">
                 AutoFeather
-                <span className="block text-muted-foreground mt-2 text-3xl">
+                <span className="block  mt-2 text-3xl">
                   Feather Density & Thermal Comfort Fertility Predictor
                 </span>
               </h1>
 
-              <p className="max-w-xl text-muted-foreground leading-relaxed">
+              <p className="max-w-xl leading-relaxed">
                 AutoFeather is an intelligent poultry analytics platform that
                 predicts fertility outcomes by evaluating feather density and
                 thermal comfort using a fuzzy logic inference model.

@@ -167,7 +167,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground transition-all duration-300;
+    @apply text-foreground transition-all duration-300;
     font-family: var(--active-font), sans-serif;
   }
 }

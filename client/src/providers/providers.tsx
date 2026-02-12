@@ -26,7 +26,19 @@ export function Providers({ children }: { children: ReactNode }) {
         disableTransitionOnChange
       >
         <SocketProvider>
-          {children}
+          <div
+            style={{
+              minHeight: '100vh',
+              backgroundImage: "url('/images/bg.jpg')",
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              backgroundAttachment: 'fixed',
+            }}
+          >
+            {children}
+          </div>
+
           <ToastNotificationHandler />
           <SplashOverlay />
           <Toaster position="top-right" />
