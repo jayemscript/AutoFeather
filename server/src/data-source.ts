@@ -10,6 +10,8 @@ import { Session } from 'src/modules/auth/entities/session.entity';
 import { AuditLog } from 'src/modules/audit/entities/audit-log.entity';
 import { Notifications } from 'src/modules/notifications/entities/notification.entity';
 import { Mailer } from 'src/modules/mailer/entities/mailer.entity';
+import { ChickenBreed } from 'src/modules/predict/entities/chicken-breed.entity';
+import { PredictionRecords } from './modules/predict/entities/predict-entity';
 const isSSL = process.env.DB_SSL === 'true';
 
 export const AppDataSource = new DataSource({
@@ -29,6 +31,8 @@ export const AppDataSource = new DataSource({
     AuditLog,
     Notifications,
     Mailer,
+    ChickenBreed,
+    PredictionRecords,
   ],
   migrations: ['migrations/*.ts'],
   synchronize: true,
