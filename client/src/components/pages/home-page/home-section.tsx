@@ -12,7 +12,7 @@ import { ThemeButtons } from '@/components/customs/theme-buttons';
 
 export default function HomeSection() {
   return (
-    <section className="min-h-screen bg-background/70 text-foreground flex items-center justify-center px-6">
+    <section className="min-h-screen bg-background/40 backdrop-blur-xs text-foreground flex items-center justify-center px-6">
       <div className="w-full max-w-7xl">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left: Description */}
