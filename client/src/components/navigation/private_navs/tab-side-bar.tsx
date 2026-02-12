@@ -164,7 +164,7 @@ export default function TabSideBar({ isOpen, onClose }: TabSideBarProps) {
             className="flex flex-col w-64 h-full p-5 space-y-6 shadow-lg bg-primary dark:bg-background text-accent dark:text-white relative"
           >
             <div className="flex items-center space-x-2 mb-6">
-              <img src="/images/logo.webp" alt="Logo" className="h-8 w-8" />
+              <img src="/images/logo.jpg" alt="Logo" className="h-8 w-8" />
               {isOpen && (
                 <span className="font-bold text-[0.7em]">AutoFeather</span>
               )}
