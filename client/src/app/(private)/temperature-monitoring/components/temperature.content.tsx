@@ -194,7 +194,7 @@ export default function TemperatureContent() {
             Temperature Monitoring
           </h1>
           <p className="text-muted-foreground">
-            Real-time water temperature tracking
+            Real-time Poultry temperature tracking
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -244,7 +244,9 @@ export default function TemperatureContent() {
             <Thermometer className="w-5 h-5" />
             Current Temperature
           </CardTitle>
-          <CardDescription>Fishpond water temperature sensor</CardDescription>
+          <CardDescription>
+            Poultry Environment temperature sensor
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {currentTemp ? (
