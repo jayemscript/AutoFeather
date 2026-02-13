@@ -1,0 +1,28 @@
+services:
+  autofeather-backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: autofeather-backend
+    ports:
+      - "3005:3005"
+    networks:
+      - autofeather-network
+    restart: unless-stopped
+
+  autofeather-frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: autofeather-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - autofeather-backend
+    networks:
+      - autofeather-network
+    restart: unless-stopped
+
+networks:
+  autofeather-network:
+    driver: bridge
