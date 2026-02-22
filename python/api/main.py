@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from predict_controller import router as predict_router
-from sensor_controller import router as sensor_router
+# Uncomment the following line to include the sensor router
+# from sensor_controller import router as sensor_router
 import uvicorn
 import config
 
@@ -20,7 +21,8 @@ app.add_middleware(
 )
 
 app.include_router(predict_router, prefix="/api", tags=["Prediction"])
-app.include_router(sensor_router, tags=["Sensor"])
+# Uncomment the following line to include the sensor router
+# app.include_router(sensor_router, tags=["Sensor"])
 
 @app.on_event("startup")
 async def startup_event():
