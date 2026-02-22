@@ -133,4 +133,15 @@ export class PredictionController {
       data: result,
     };
   }
+
+  @Get('analytics/summary')
+  @HttpCode(HttpStatus.OK)
+  async getAnalytics() {
+    const result = await this.predictService.getAnalytics();
+    return {
+      status: 'success',
+      message: 'Analytics fetched successfully',
+      data: result,
+    };
+  }
 }

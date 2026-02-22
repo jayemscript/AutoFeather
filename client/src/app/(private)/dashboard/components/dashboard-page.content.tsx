@@ -8,11 +8,9 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import UserListOnline from '@/components/sections/dashboards/user-list-online';
 import { formatDate } from '@syntaxsentinel/date-utils';
 import PredictTable from './prediction/predict-table';
-import { hasRole } from '@/utils/role.utils';
+import Analytics from './prediction/analytics';
 
 export default function DashboardPageContent() {
   const { user } = useAuthCheck();
@@ -36,7 +34,7 @@ export default function DashboardPageContent() {
         </div>
 
         <div className="m-5 p-5 space-y-4">
-          {/* <UserListOnline /> */}
+          <Analytics />
           <PredictTable />
         </div>
       </div>

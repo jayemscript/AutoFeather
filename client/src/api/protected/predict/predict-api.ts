@@ -42,3 +42,7 @@ export async function deletePermanentlyPredictionRecord(
 ): Promise<void> {
   return handleRequest(axios.post(`/predict/delete-permanent/${id}`));
 }
+
+export async function getAnalytics(): Promise<any> {
+  return handleRequest(axios.get('/predict/analytics/summary'));
+}

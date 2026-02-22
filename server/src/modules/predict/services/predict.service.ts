@@ -334,4 +334,102 @@ export class PredictionService {
       deletedId: record.id,
     };
   }
+
+
+  async getAnalytics() {
+  const records = await this.predictRepository.find({
+    relations: ['chickenBreed'],
+    withDeleted: false,
+  });
+
+  // --- Feather Density Distribution ---
+  const featherDensityCounts = { LOW: 0, HIGH: 0 };
+  for (const r of records) {
+    if (r.classification?.featherDensity) {
+      featherDensityCounts[r.classification.featherDensity]++;
+    }
+  }
+
+  // --- Fertility Level Distribution ---
+  const fertilityLevelCounts = { LOW: 0, MEDIUM: 0, HIGH: 0 };
+  for (const r of records) {
+    if (r.fuzzyResult?.fertilityLevel) {
+      fertilityLevelCounts[r.fuzzyResult.fertilityLevel]++;
+    }
+  }
+
+  // --- Average Fertility Score Over Time (by date) ---
+  const scoreByDate: Record<string, { total: number; count: number }> = {};
+  for (const r of records) {
+    const date = r.createdAt.toISOString().split('T')[0]; // YYYY-MM-DD
+    if (!scoreByDate[date]) scoreByDate[date] = { total: 0, count: 0 };
+    if (r.fuzzyResult?.fertilityScore != null) {
+      scoreByDate[date].total += r.fuzzyResult.fertilityScore;
+      scoreByDate[date].count++;
+    }
+  }
+  const fertilityScoreOverTime = Object.entries(scoreByDate)
+    .map(([date, { total, count }]) => ({
+      date,
+      averageFertilityScore: parseFloat((total / count).toFixed(2)),
+    }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  // --- Average Temperature & Humidity per Fertility Level ---
+  const envByLevel: Record<string, { tempTotal: number; humTotal: number; count: number }> = {
+    LOW: { tempTotal: 0, humTotal: 0, count: 0 },
+    MEDIUM: { tempTotal: 0, humTotal: 0, count: 0 },
+    HIGH: { tempTotal: 0, humTotal: 0, count: 0 },
+  };
+  for (const r of records) {
+    const level = r.fuzzyResult?.fertilityLevel;
+    if (level && envByLevel[level]) {
+      envByLevel[level].tempTotal += r.temperature ?? 0;
+      envByLevel[level].humTotal += r.humidity ?? 0;
+      envByLevel[level].count++;
+    }
+  }
+  const environmentalByFertility = Object.entries(envByLevel).map(
+    ([level, { tempTotal, humTotal, count }]) => ({
+      fertilityLevel: level,
+      avgTemperature: count ? parseFloat((tempTotal / count).toFixed(2)) : 0,
+      avgHumidity: count ? parseFloat((humTotal / count).toFixed(2)) : 0,
+      count,
+    }),
+  );
+
+  // --- Records per Chicken Breed ---
+  const breedCounts: Record<string, number> = {};
+  for (const r of records) {
+    const breedName = r.chickenBreed?.chickenName ?? 'Unknown';
+    breedCounts[breedName] = (breedCounts[breedName] ?? 0) + 1;
+  }
+  const recordsPerBreed = Object.entries(breedCounts).map(([breed, count]) => ({
+    breed,
+    count,
+  }));
+
+  // --- Confidence Distribution (binned: 0-25, 25-50, 50-75, 75-100) ---
+  const confidenceBins = { '0-25': 0, '25-50': 0, '50-75': 0, '75-100': 0 };
+  for (const r of records) {
+    const conf = (r.classification?.confidence ?? 0) * 100;
+    if (conf <= 25) confidenceBins['0-25']++;
+    else if (conf <= 50) confidenceBins['25-50']++;
+    else if (conf <= 75) confidenceBins['50-75']++;
+    else confidenceBins['75-100']++;
+  }
+  const confidenceDistribution = Object.entries(confidenceBins).map(
+    ([range, count]) => ({ range, count }),
+  );
+
+  return {
+    totalRecords: records.length,
+    featherDensityDistribution: featherDensityCounts,         // Pie / Donut chart
+    fertilityLevelDistribution: fertilityLevelCounts,         // Bar / Pie chart
+    fertilityScoreOverTime,                                    // Line chart
+    environmentalByFertility,                                  // Grouped bar chart
+    recordsPerBreed,                                           // Bar chart
+    confidenceDistribution,                                    // Bar / Histogram
+  };
+}
 }
