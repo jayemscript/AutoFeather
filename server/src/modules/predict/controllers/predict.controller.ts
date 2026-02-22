@@ -121,4 +121,16 @@ export class PredictionController {
       },
     };
   }
+
+  @Post('delete-permanent/:id')
+  @HttpCode(HttpStatus.OK)
+  async deletePermanent(@Param('id') id: string, @GetUser() currentUser: User) {
+    const result = await this.predictService.deletePermanent(id, currentUser);
+
+    return {
+      status: 'success',
+      message: 'Record permanently deleted successfully',
+      data: result,
+    };
+  }
 }

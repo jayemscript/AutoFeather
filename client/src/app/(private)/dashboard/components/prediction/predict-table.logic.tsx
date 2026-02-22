@@ -15,13 +15,17 @@ import {
 import { extractErrorMessage } from '@/configs/api.helper';
 import { showToastError } from '@/utils/toast-config';
 import { PredictionInfo } from '@/api/protected/predict/predict-api.interface';
-import { GetAllPredictionPaginated } from '@/api/protected/predict/predict-api';
+import {
+  GetAllPredictionPaginated,
+  deletePermanentlyPredictionRecord,
+} from '@/api/protected/predict/predict-api';
 import {
   FaEllipsisV,
   FaEye,
   FaThermometerHalf,
   FaTint,
   FaBrain,
+  FaTrash,
 } from 'react-icons/fa';
 import PredictionFormModal from './predict-form';
 import PredictionDetails from './predict-details';
@@ -73,6 +77,31 @@ export function usePredictionTableLogic() {
   const handleSetRefreshFn = useCallback((refresh: () => void) => {
     setRefreshFn(() => refresh);
   }, []);
+
+  const handleDeleteRecord = async (id: string) => {
+    if (
+      !confirm(
+        'Are you sure you want to delete this record? This action cannot be undone.',
+      )
+    ) {
+      return;
+    }
+    try {
+      await deletePermanentlyPredictionRecord(id);
+      showToastError(
+        'Deleted',
+        'Record has been deleted permanently',
+        'bottom-right',
+      );
+      refreshFn?.();
+    } catch (error) {
+      showToastError(
+        'Delete Failed',
+        extractErrorMessage(error),
+        'bottom-right',
+      );
+    }
+  };
 
   const fetchData = async (params: {
     page: number;
@@ -230,6 +259,12 @@ export function usePredictionTableLogic() {
                 <FaEye className="mr-2 h-4 w-4" />
                 View Report
               </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={() => handleDeleteRecord(rowData.id)}>
+                <FaTrash className="mr-2 h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+
               <DropdownMenuSeparator />
             </DropdownMenuContent>
           </DropdownMenu>

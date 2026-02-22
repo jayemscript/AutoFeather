@@ -298,4 +298,40 @@ export class PredictionService {
     this.logger.log(`Fuzzy logic recomputed for record ${id}`);
     return updated;
   }
+
+  async deletePermanent(id: string, currentUser: User) {
+    if (!id) {
+      throw new BadRequestException('ID is required');
+    }
+
+    const record = await this.predictRepository.findOne({
+      where: { id },
+      withDeleted: true,
+    });
+
+    if (!record) {
+      throw new NotFoundException(`Prediction record with ID ${id} not found`);
+    }
+
+    if (record.image) {
+      await this.fileUploadService.deleteFile(record.image);
+      this.logger.log(`Deleted image file for record ${id}`);
+    }
+
+    const TxID = `TX_PREDICT-DELETE-${record.id}`;
+    await this.auditService.log({
+      transactionId: TxID,
+      performedBy: currentUser,
+      action: 'DELETE',
+      title: `Prediction Record Permanently Deleted: ${record.title}`,
+      before: record,
+      after: null,
+    });
+
+    await this.predictRepository.delete(record.id);
+
+    return {
+      deletedId: record.id,
+    };
+  }
 }

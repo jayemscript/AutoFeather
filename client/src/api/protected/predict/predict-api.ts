@@ -36,3 +36,9 @@ export async function createPredictionRecord(
 ): Promise<PredictionResponse> {
   return handleRequest(axios.post('/predict/create', createRecord));
 }
+
+export async function deletePermanentlyPredictionRecord(
+  id: string,
+): Promise<void> {
+  return handleRequest(axios.post(`/predict/delete-permanent/${id}`));
+}
