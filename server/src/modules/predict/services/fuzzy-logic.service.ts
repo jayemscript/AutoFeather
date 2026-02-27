@@ -22,10 +22,6 @@ export class FuzzyLogicService {
 
   /**
    * Main fuzzy logic inference method
-   * @param featherDensity - LOW or HIGH from YOLOv8 classification
-   * @param temperature - Temperature in Celsius
-   * @param humidity - Optional humidity percentage (0-100)
-   * @returns Fuzzy logic fertility prediction result
    */
   async inferFertility(
     featherDensity: 'LOW' | 'HIGH',
@@ -39,26 +35,26 @@ export class FuzzyLogicService {
     // ==========================================
     // STEP 1: FUZZIFICATION
     // ==========================================
-    // Convert crisp inputs to fuzzy membership values
-
-    // Feather Density Score (FDS)
-    // HIGH = 0.75 (High Resilience), LOW = 0.25 (Low Resilience)
     const fds = featherDensity === 'HIGH' ? 0.75 : 0.25;
-
-    // Thermal Comfort Index (TCI) - based on temperature
     const tci = this.calculateThermalComfortIndex(temperature, humidity);
 
     this.logger.log(`Fuzzification: FDS=${fds}, TCI=${tci}`);
 
-    // Fuzzy membership values
     const featherMembership = this.fuzzifyFeatherDensity(fds);
     const tempMembership = this.fuzzifyTemperature(temperature);
-    const humidityMembership = humidity ? this.fuzzifyHumidity(humidity) : null;
+    const humidityMembership = humidity != null ? this.fuzzifyHumidity(humidity) : null;
+
+    // Log memberships for debug visibility
+    this.logger.debug(
+      `Feather membership: low=${featherMembership.low.toFixed(3)}, medium=${featherMembership.medium.toFixed(3)}, high=${featherMembership.high.toFixed(3)}`,
+    );
+    this.logger.debug(
+      `Temp membership: cold=${tempMembership.cold.toFixed(3)}, optimal=${tempMembership.optimal.toFixed(3)}, hot=${tempMembership.hot.toFixed(3)}`,
+    );
 
     // ==========================================
     // STEP 2: FUZZY INFERENCE (RULE EVALUATION)
     // ==========================================
-    // Using Minimum (AND) operator as per Equation 1
     const ruleStrengths = this.evaluateRulesWithMinimum(
       featherMembership,
       tempMembership,
@@ -68,13 +64,12 @@ export class FuzzyLogicService {
     );
 
     this.logger.log(
-      ` Rule Evaluation: ${Object.keys(ruleStrengths).length} rules fired`,
+      `Rule Evaluation: ${Object.keys(ruleStrengths).length} rules fired`,
     );
 
     // ==========================================
     // STEP 3: DEFUZZIFICATION
     // ==========================================
-    // Using Centroid Method as per Equation 2
     const fertilityScore = this.centroidDefuzzification(ruleStrengths);
     const fertilityLevel = this.getFertilityLevel(fertilityScore);
 
@@ -107,27 +102,13 @@ export class FuzzyLogicService {
 
   /**
    * Calculate Thermal Comfort Index (TCI)
-   * Based on temperature and humidity
-   *
-   * TCI = 0.80 (High Heat Stress) is threshold
-   * Lower TCI = better thermal comfort
    */
-  private calculateThermalComfortIndex(
-    temp: number,
-    humidity?: number,
-  ): number {
-    // Optimal temperature range: 18-24°C
-    // Optimal humidity range: 50-70%
-
+  private calculateThermalComfortIndex(temp: number, humidity?: number): number {
     const tempStress = this.calculateTemperatureStress(temp);
-    const humidityStress = humidity
-      ? this.calculateHumidityStress(humidity)
-      : 0;
-
-    // Combine stresses (weighted average)
-    const tci = humidity ? tempStress * 0.7 + humidityStress * 0.3 : tempStress;
-
-    // Normalize to 0-1 range
+    const humidityStress = humidity != null ? this.calculateHumidityStress(humidity) : 0;
+    const tci = humidity != null
+      ? tempStress * 0.7 + humidityStress * 0.3
+      : tempStress;
     return Math.min(1, Math.max(0, tci));
   }
 
@@ -135,20 +116,13 @@ export class FuzzyLogicService {
    * Calculate temperature stress component
    */
   private calculateTemperatureStress(temp: number): number {
-    // Optimal: 18-24°C (stress = 0)
-    // Cold: < 18°C (increasing stress)
-    // Hot: > 24°C (increasing stress)
-
     if (temp >= 18 && temp <= 24) {
-      // Optimal range - low stress
       return 0.2;
     } else if (temp < 18) {
-      // Cold stress increases linearly
-      const coldStress = (18 - temp) / 18; // 0 at 18°C, 1 at 0°C
+      const coldStress = (18 - temp) / 18;
       return Math.min(1, 0.2 + coldStress * 0.6);
     } else {
-      // Heat stress increases exponentially
-      const heatStress = (temp - 24) / 16; // 0 at 24°C, 1 at 40°C
+      const heatStress = (temp - 24) / 16;
       return Math.min(1, 0.2 + heatStress * 0.8);
     }
   }
@@ -157,15 +131,12 @@ export class FuzzyLogicService {
    * Calculate humidity stress component
    */
   private calculateHumidityStress(humidity: number): number {
-    // Optimal: 50-70% (stress = 0)
     if (humidity >= 50 && humidity <= 70) {
       return 0.1;
     } else if (humidity < 50) {
-      // Dry stress
       const dryStress = (50 - humidity) / 50;
       return Math.min(1, 0.1 + dryStress * 0.4);
     } else {
-      // High humidity stress
       const humidStress = (humidity - 70) / 30;
       return Math.min(1, 0.1 + humidStress * 0.5);
     }
@@ -173,27 +144,36 @@ export class FuzzyLogicService {
 
   /**
    * Fuzzify Feather Density Score (FDS)
-   * High Resilience: FDS ≥ 0.75
-   * Medium Resilience: 0.4 ≤ FDS < 0.75
-   * Low Resilience: FDS < 0.4
+   *
+   * Sets overlap to avoid dead zones:
+   *   low:    peaks at 0,    fades to 0 at 0.5
+   *   medium: peaks at 0.5,  overlaps both low and high
+   *   high:   peaks at 1.0,  starts rising from 0.5
    */
-  private fuzzifyFeatherDensity(fds: number): {
-    low: number;
-    medium: number;
-    high: number;
-  } {
-    return {
-      low: this.triangularMF(fds, 0, 0, 0.4),
-      medium: this.triangularMF(fds, 0.3, 0.55, 0.8),
-      high: this.triangularMF(fds, 0.7, 1, 1),
-    };
-  }
+ private fuzzifyFeatherDensity(fds: number): {
+  low: number;
+  medium: number;
+  high: number;
+} {
+  return {
+    // peaks at 0 (your LOW FDS value = 0.25 sits on the ramp → still meaningful)
+    low:    this.triangularMF(fds, 0,    0,    0.25, 0.5),
+    // peaks at 0.5, overlaps both low and high
+    medium: this.triangularMF(fds, 0.2,  0.5,  0.7),
+    // peaks at 0.75 (your exact HIGH FDS value → membership = 1.0)
+    high:   this.triangularMF(fds, 0.5,  0.75, 1,   1),
+  };
+}
 
   /**
    * Fuzzify temperature
-   * Cold: < 18°C
-   * Optimal: 18-24°C
-   * Hot: > 24°C
+   *
+   * FIX: Overlapping boundaries so no dead zone exists between sets.
+   *   cold:    peaks 0–18°C,  fades to 0 at 24°C
+   *   optimal: peaks at 21°C, overlaps cold (16°C) and hot (27°C)
+   *   hot:     starts rising at 21°C, peaks at 30°C+
+   *
+   * At any given temperature, at least one (usually two) sets are non-zero.
    */
   private fuzzifyTemperature(temp: number): {
     cold: number;
@@ -201,14 +181,19 @@ export class FuzzyLogicService {
     hot: number;
   } {
     return {
-      cold: this.triangularMF(temp, 0, 0, 18, 22),
-      optimal: this.triangularMF(temp, 18, 21, 24),
-      hot: this.triangularMF(temp, 22, 30, 50, 50),
+      cold:    this.triangularMF(temp, 0,   0,   18,  24),
+      optimal: this.triangularMF(temp, 16,  21,  27),
+      hot:     this.triangularMF(temp, 21,  30,  50,  50),
     };
   }
 
   /**
    * Fuzzify humidity
+   *
+   * FIX: Overlapping boundaries to avoid dead zones.
+   *   low:     peaks 0–40%,  fades to 0 at 60%
+   *   optimal: peaks at 60%, overlaps low (45%) and high (70%)
+   *   high:    starts rising at 65%, peaks at 85%+
    */
   private fuzzifyHumidity(humidity: number): {
     low: number;
@@ -216,14 +201,21 @@ export class FuzzyLogicService {
     high: number;
   } {
     return {
-      low: this.triangularMF(humidity, 0, 0, 40, 60),
-      optimal: this.triangularMF(humidity, 50, 60, 70),
-      high: this.triangularMF(humidity, 60, 80, 100, 100),
+      low:     this.triangularMF(humidity, 0,   0,   40,  60),
+      optimal: this.triangularMF(humidity, 45,  60,  75),
+      high:    this.triangularMF(humidity, 65,  85,  100, 100),
     };
   }
 
   /**
-   * Triangular membership function
+   * Triangular / Trapezoidal membership function
+   *
+   * Shape:
+   *   a ──── b ════ c ──── d
+   *        rises  flat  falls
+   *
+   * If d is omitted, c == d (pure triangle, no flat top).
+   * Returns 0 outside [a, d], 1 on [b, c], linear ramps on [a,b] and [c,d].
    */
   private triangularMF(
     x: number,
@@ -243,7 +235,7 @@ export class FuzzyLogicService {
 
   /**
    * Evaluate fuzzy rules using MINIMUM (AND) operator
-   * As per Equation 1: α_i = min(μ_FDS(x), μ_TCI(y))
+   * α_i = min(μ_FDS(x), μ_TCI(y))
    */
   private evaluateRulesWithMinimum(
     feather: { low: number; medium: number; high: number },
@@ -258,45 +250,38 @@ export class FuzzyLogicService {
     // CORE RULES (Feather Density + Temperature)
     // ==========================================
 
-    // Rule 1: High feather density (FDS ≥ 0.75) + Optimal temp → HIGH Fertility
-    rules.rule1_high_feather_optimal_temp = Math.min(
-      feather.high,
-      temp.optimal,
-    );
+    // Rule 1: High feather + Optimal temp → HIGH fertility
+    rules.rule1_high_feather_optimal_temp = Math.min(feather.high, temp.optimal);
 
-    // Rule 2: High feather density + Cold temp → MEDIUM Fertility
+    // Rule 2: High feather + Cold temp → MEDIUM-HIGH fertility
     // (Good insulation protects against cold)
     rules.rule2_high_feather_cold_temp = Math.min(feather.high, temp.cold);
 
-    // Rule 3: High feather density + Hot temp → MEDIUM-LOW Fertility
-    // (Dense feathers retain heat, not ideal)
+    // Rule 3: High feather + Hot temp → MEDIUM-LOW fertility
+    // (Dense feathers retain heat)
     rules.rule3_high_feather_hot_temp = Math.min(feather.high, temp.hot);
 
-    // Rule 4: Medium feather density + Optimal temp → MEDIUM Fertility
-    rules.rule4_medium_feather_optimal_temp = Math.min(
-      feather.medium,
-      temp.optimal,
-    );
+    // Rule 4: Medium feather + Optimal temp → MEDIUM fertility
+    rules.rule4_medium_feather_optimal_temp = Math.min(feather.medium, temp.optimal);
 
-    // Rule 5: Medium feather density + Cold/Hot → LOW-MEDIUM Fertility
+    // Rule 5 & 6: Medium feather + Cold/Hot → LOW-MEDIUM fertility
     rules.rule5_medium_feather_cold_temp = Math.min(feather.medium, temp.cold);
     rules.rule6_medium_feather_hot_temp = Math.min(feather.medium, temp.hot);
 
-    // Rule 7: Low feather density (FDS < 0.4) + Cold temp → LOW Fertility
-    // (Poor insulation in cold = high stress)
+    // Rule 7: Low feather + Cold → LOW fertility
     rules.rule7_low_feather_cold_temp = Math.min(feather.low, temp.cold);
 
-    // Rule 8: Low feather density + Optimal temp → MEDIUM-LOW Fertility
+    // Rule 8: Low feather + Optimal → MEDIUM-LOW fertility
     rules.rule8_low_feather_optimal_temp = Math.min(feather.low, temp.optimal);
 
-    // Rule 9: Low feather density + Hot temp → LOW Fertility
+    // Rule 9: Low feather + Hot → LOW fertility
     rules.rule9_low_feather_hot_temp = Math.min(feather.low, temp.hot);
 
     // ==========================================
-    // HUMIDITY ENHANCEMENT RULES (if humidity provided)
+    // HUMIDITY ENHANCEMENT RULES
     // ==========================================
     if (humidity) {
-      // Rule 10: Perfect conditions (High FDS + Optimal temp + Optimal humidity)
+      // Rule 10: Perfect conditions
       rules.rule10_perfect_conditions = Math.min(
         feather.high,
         temp.optimal,
@@ -313,12 +298,11 @@ export class FuzzyLogicService {
     // ==========================================
     // THERMAL COMFORT INDEX (TCI) RULES
     // ==========================================
-    // If TCI ≥ 0.80 (High Heat Stress), reduce fertility
     if (tci >= 0.8) {
       rules.rule13_high_heat_stress = tci;
     }
 
-    // Filter out rules with zero strength
+    // Filter out zero-strength rules
     const activeRules: Record<string, number> = {};
     for (const [rule, strength] of Object.entries(rules)) {
       if (strength > 0) {
@@ -331,55 +315,35 @@ export class FuzzyLogicService {
 
   /**
    * Centroid Defuzzification Method
-   * As per Equation 2: Z* = ∫μC(z)·z dz / ∫μC(z) dz
-   *
-   * Computes the center of gravity of the aggregated fuzzy set
+   * Z* = ∫μC(z)·z dz / ∫μC(z) dz
    */
-  private centroidDefuzzification(
-    ruleStrengths: Record<string, number>,
-  ): number {
-    // Define output fuzzy sets for each rule (fertility percentages)
+  private centroidDefuzzification(ruleStrengths: Record<string, number>): number {
     const ruleOutputs: Record<string, { center: number; width: number }> = {
-      // High Fertility Rules
-      rule1_high_feather_optimal_temp: { center: 90, width: 10 },
-      rule10_perfect_conditions: { center: 95, width: 5 },
-
-      // Medium-High Fertility Rules
-      rule2_high_feather_cold_temp: { center: 70, width: 15 },
-      rule4_medium_feather_optimal_temp: { center: 65, width: 15 },
-
-      // Medium Fertility Rules
-      rule3_high_feather_hot_temp: { center: 55, width: 15 },
-      rule5_medium_feather_cold_temp: { center: 50, width: 15 },
-      rule6_medium_feather_hot_temp: { center: 45, width: 15 },
-
-      // Medium-Low Fertility Rules
-      rule8_low_feather_optimal_temp: { center: 40, width: 15 },
-
-      // Low Fertility Rules
-      rule7_low_feather_cold_temp: { center: 25, width: 15 },
-      rule9_low_feather_hot_temp: { center: 20, width: 15 },
-
-      // Stress Penalty Rules
-      rule11_low_humidity_stress: { center: 35, width: 10 },
-      rule12_high_humidity_stress: { center: 30, width: 10 },
-      rule13_high_heat_stress: { center: 20, width: 10 },
+      rule1_high_feather_optimal_temp:  { center: 90, width: 10 },
+      rule10_perfect_conditions:        { center: 95, width:  5 },
+      rule2_high_feather_cold_temp:     { center: 70, width: 15 },
+      rule4_medium_feather_optimal_temp:{ center: 65, width: 15 },
+      rule3_high_feather_hot_temp:      { center: 55, width: 15 },
+      rule5_medium_feather_cold_temp:   { center: 50, width: 15 },
+      rule6_medium_feather_hot_temp:    { center: 45, width: 15 },
+      rule8_low_feather_optimal_temp:   { center: 40, width: 15 },
+      rule7_low_feather_cold_temp:      { center: 25, width: 15 },
+      rule9_low_feather_hot_temp:       { center: 20, width: 15 },
+      rule11_low_humidity_stress:       { center: 35, width: 10 },
+      rule12_high_humidity_stress:      { center: 30, width: 10 },
+      rule13_high_heat_stress:          { center: 20, width: 10 },
     };
 
-    // Centroid calculation using discrete approximation
-    const numPoints = 101; // 0 to 100 with step 1
     let numerator = 0;
     let denominator = 0;
 
     for (let z = 0; z <= 100; z++) {
       let membershipAtZ = 0;
 
-      // For each rule, calculate membership at this z value
       for (const [rule, strength] of Object.entries(ruleStrengths)) {
         const output = ruleOutputs[rule];
         if (!output) continue;
 
-        // Triangular membership function for output
         const membership = this.triangularMF(
           z,
           output.center - output.width,
@@ -387,23 +351,15 @@ export class FuzzyLogicService {
           output.center + output.width,
         );
 
-        // Take the maximum of (rule_strength AND output_membership)
-        // This is the implication step in Mamdani
         const impliedMembership = Math.min(strength, membership);
-
-        // Aggregation: take maximum across all rules
         membershipAtZ = Math.max(membershipAtZ, impliedMembership);
       }
 
-      // Centroid formula
       numerator += membershipAtZ * z;
       denominator += membershipAtZ;
     }
 
-    // Compute centroid
     const centroid = denominator > 0 ? numerator / denominator : 50;
-
-    // Ensure result is in [0, 100]
     return Math.max(0, Math.min(100, centroid));
   }
 
@@ -430,29 +386,24 @@ export class FuzzyLogicService {
   ): string {
     let explanation = `Fertility prediction: ${fertilityLevel} (${fertilityScore.toFixed(1)}% likelihood). `;
 
-    // Feather Density Analysis
     explanation += `Feather Density Score (FDS): ${fds.toFixed(2)} (${featherDensity} resilience). `;
     if (fds >= 0.75) {
-      explanation +=
-        'Excellent feather coverage provides superior thermal regulation. ';
+      explanation += 'Excellent feather coverage provides superior thermal regulation. ';
     } else if (fds >= 0.4) {
       explanation += 'Moderate feather coverage offers adequate insulation. ';
     } else {
       explanation += 'Low feather coverage may compromise thermal comfort. ';
     }
 
-    // Thermal Comfort Index
     explanation += `Thermal Comfort Index (TCI): ${tci.toFixed(2)}. `;
     if (tci >= 0.8) {
-      explanation +=
-        'High heat stress detected - fertility may be compromised. ';
+      explanation += 'High heat stress detected - fertility may be compromised. ';
     } else if (tci >= 0.5) {
       explanation += 'Moderate thermal stress present. ';
     } else {
       explanation += 'Thermal conditions are favorable. ';
     }
 
-    // Temperature Assessment
     if (temperature < 18) {
       explanation += `Temperature (${temperature}°C) below optimal range (18-24°C) - cold stress may reduce fertility. `;
     } else if (temperature > 24) {
@@ -461,7 +412,6 @@ export class FuzzyLogicService {
       explanation += `Temperature (${temperature}°C) within optimal range. `;
     }
 
-    // Humidity Assessment
     if (humidity !== undefined) {
       if (humidity < 50) {
         explanation += `Low humidity (${humidity}%) may cause respiratory stress and dehydration. `;

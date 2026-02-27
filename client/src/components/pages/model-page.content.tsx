@@ -65,11 +65,18 @@ export default function ModelPageContent() {
 FDS = 0.25  // if density is LOW  (Low Resilience)`}</CodeBlock>
 
               <p className="text-xs text-muted-foreground mt-2">
-                FDS is then fuzzified into three linguistic variables using triangular membership functions:
+                FDS is then fuzzified into three linguistic variables using triangular/trapezoidal
+                membership functions. Functions are calibrated so that FDS=0.75 peaks the{' '}
+                <code className="bg-black/40 px-1">high</code> set and FDS=0.25 peaks the{' '}
+                <code className="bg-black/40 px-1">low</code> set (membership = 1.0 at each):
               </p>
-              <CodeBlock>{`μ_low(FDS)    = triangularMF(FDS, 0,    0,    0.4)
-μ_medium(FDS) = triangularMF(FDS, 0.3,  0.55, 0.8)
-μ_high(FDS)   = triangularMF(FDS, 0.7,  1,    1)`}</CodeBlock>
+              <CodeBlock>{`μ_low(FDS)    = triangularMF(FDS, 0,    0,    0.25, 0.5)
+μ_medium(FDS) = triangularMF(FDS, 0.2,  0.5,  0.7)
+μ_high(FDS)   = triangularMF(FDS, 0.5,  0.75, 1,   1)`}</CodeBlock>
+              <p className="text-xs text-muted-foreground">
+                ⚠️ Peak of <code className="bg-black/40 px-1">high</code> is set at <strong>0.75</strong> (not 1.0)
+                so HIGH density always achieves full membership = 1.0.
+              </p>
             </div>
 
             {/* TCI */}
@@ -95,19 +102,48 @@ if temp > 24:        stress = 0.2 + ((temp - 24) / 16) × 0.8`}</CodeBlock>
           {/* Triangular MF Explainer */}
           <div className="border border-border bg-card p-6 space-y-3 mt-6">
             <h3 className="font-semibold text-sm uppercase tracking-widest">
-              Triangular Membership Function (used for all variables)
+              Triangular / Trapezoidal Membership Function (used for all variables)
             </h3>
             <p className="text-xs text-muted-foreground">
-              Given parameters <code className="bg-secondary px-1">a, b, c</code> (and optional <code className="bg-secondary px-1">d</code> for trapezoidal):
+              Given parameters <code className="bg-secondary px-1">a, b, c</code> (and optional{' '}
+              <code className="bg-secondary px-1">d</code> for trapezoidal flat top):
             </p>
             <CodeBlock>{`μ(x) = 0              if x ≤ a or x ≥ d
-μ(x) = (x - a)/(b-a)  if a < x < b
-μ(x) = 1              if b ≤ x ≤ c
-μ(x) = (d - x)/(d-c)  if c < x < d`}</CodeBlock>
+μ(x) = (x - a)/(b-a)  if a < x < b      // rising ramp
+μ(x) = 1              if b ≤ x ≤ c      // flat top (peak)
+μ(x) = (d - x)/(d-c)  if c < x < d     // falling ramp`}</CodeBlock>
             <p className="text-xs text-muted-foreground">
-              Temperature example: <code className="bg-secondary px-1">cold = triangularMF(temp, 0, 0, 18, 22)</code>
+              Temperature example:{' '}
+              <code className="bg-secondary px-1">cold = triangularMF(temp, 0, 0, 18, 24)</code>
             </p>
             <MembershipFunctionDiagram />
+          </div>
+
+          {/* Temperature membership functions table */}
+          <div className="border border-border bg-secondary p-6 space-y-3 mt-6">
+            <h3 className="font-semibold text-sm uppercase tracking-widest">
+              Temperature Membership Functions
+            </h3>
+            <p className="text-xs text-muted-foreground mb-3">
+              Sets are designed to <strong>overlap</strong> — at any temperature, at least one (usually two)
+              sets are non-zero, eliminating dead zones where no rules would fire:
+            </p>
+            <CodeBlock>{`μ_cold(temp)    = triangularMF(temp, 0,   0,   18,  24)
+μ_optimal(temp) = triangularMF(temp, 16,  21,  27)
+μ_hot(temp)     = triangularMF(temp, 21,  30,  50,  50)`}</CodeBlock>
+            <p className="text-xs text-muted-foreground">
+              At 22°C: cold≈0.33, optimal≈0.83, hot≈0.17 — all non-zero, smooth transition guaranteed.
+            </p>
+          </div>
+
+          {/* Humidity membership functions */}
+          <div className="border border-border bg-secondary p-6 space-y-3 mt-6">
+            <h3 className="font-semibold text-sm uppercase tracking-widest">
+              Humidity Membership Functions (optional input)
+            </h3>
+            <CodeBlock>{`μ_low(hum)     = triangularMF(hum, 0,   0,   40,  60)
+μ_optimal(hum) = triangularMF(hum, 45,  60,  75)
+μ_high(hum)    = triangularMF(hum, 65,  85,  100, 100)`}</CodeBlock>
           </div>
         </Section>
 
@@ -118,7 +154,8 @@ if temp > 24:        stress = 0.2 + ((temp - 24) / 16) × 0.8`}</CodeBlock>
           </p>
           <CodeBlock>{`α_i = min(μ_FDS(x), μ_TCI(y))`}</CodeBlock>
           <p className="text-xs text-muted-foreground mt-2 mb-6">
-            Each rule's firing strength is the minimum membership value across its antecedents. Rules with strength = 0 are inactive.
+            Each rule's firing strength is the minimum membership value across its antecedents.
+            Rules with strength = 0 are inactive and excluded from defuzzification.
           </p>
 
           <RuleTable />
@@ -127,7 +164,8 @@ if temp > 24:        stress = 0.2 + ((temp - 24) / 16) × 0.8`}</CodeBlock>
         {/* STEP 3: DEFUZZIFICATION */}
         <Section icon={<Calculator />} label="Step 3" title="Centroid Defuzzification">
           <p className="text-muted-foreground text-sm leading-relaxed mb-2">
-            The aggregated fuzzy output is converted into a crisp fertility score using the <strong>Centroid Method</strong> — Equation 2:
+            The aggregated fuzzy output is converted into a crisp fertility score using the{' '}
+            <strong>Centroid Method</strong> — Equation 2:
           </p>
           <CodeBlock>{`Z* = ∫ μC(z) · z dz  /  ∫ μC(z) dz`}</CodeBlock>
           <p className="text-xs text-muted-foreground mt-2 mb-6">
@@ -197,9 +235,24 @@ else:         fertilityLevel = "HIGH"`}</CodeBlock>
 
           <div className="grid md:grid-cols-3 gap-4 mt-6">
             {[
-              { level: 'LOW', range: '0–39%', color: 'border-red-500/50 bg-red-500/5', desc: 'Unfavorable conditions. Low feather resilience or high thermal stress detected.' },
-              { level: 'MEDIUM', range: '40–69%', color: 'border-yellow-500/50 bg-yellow-500/5', desc: 'Acceptable conditions. Some environmental or physiological stress present.' },
-              { level: 'HIGH', range: '70–100%', color: 'border-green-500/50 bg-green-500/5', desc: 'Optimal reproductive environment. High feather density with favorable temperature.' },
+              {
+                level: 'LOW',
+                range: '0–39%',
+                color: 'border-red-500/50 bg-red-500/5',
+                desc: 'Unfavorable conditions. Low feather resilience or high thermal stress detected.',
+              },
+              {
+                level: 'MEDIUM',
+                range: '40–69%',
+                color: 'border-yellow-500/50 bg-yellow-500/5',
+                desc: 'Acceptable conditions. Some environmental or physiological stress present.',
+              },
+              {
+                level: 'HIGH',
+                range: '70–100%',
+                color: 'border-green-500/50 bg-green-500/5',
+                desc: 'Optimal reproductive environment. High feather density with favorable temperature.',
+              },
             ].map(({ level, range, color, desc }) => (
               <div key={level} className={`border p-5 space-y-2 ${color}`}>
                 <div className="font-bold text-lg">{level}</div>
@@ -214,13 +267,28 @@ else:         fertilityLevel = "HIGH"`}</CodeBlock>
         <section className="border border-border bg-secondary p-10 space-y-8">
           <h2 className="text-2xl font-semibold text-center">Full Inference Pipeline</h2>
           <div className="grid md:grid-cols-4 gap-8 text-center">
-            <Step step="1" title="Fuzzification" desc="FDS + TCI crisp values → μ_low, μ_medium, μ_high via triangularMF()" />
-            <Step step="2" title="Rule Evaluation" desc="α_i = min(antecedent memberships) across 9–13 IF-THEN rules" />
-            <Step step="3" title="Implication" desc="min(α_i, μ_output(z)) applied per rule; aggregated by MAX" />
-            <Step step="4" title="Defuzzification" desc="Z* = centroid of aggregated fuzzy set → crisp fertility score" />
+            <Step
+              step="1"
+              title="Fuzzification"
+              desc="FDS + TCI crisp values → μ_low, μ_medium, μ_high via triangularMF() with overlapping boundaries"
+            />
+            <Step
+              step="2"
+              title="Rule Evaluation"
+              desc="α_i = min(antecedent memberships) across 9–13 IF-THEN rules"
+            />
+            <Step
+              step="3"
+              title="Implication"
+              desc="min(α_i, μ_output(z)) applied per rule; aggregated by MAX"
+            />
+            <Step
+              step="4"
+              title="Defuzzification"
+              desc="Z* = centroid of aggregated fuzzy set → crisp fertility score"
+            />
           </div>
         </section>
-
       </div>
     </section>
   );
@@ -263,19 +331,19 @@ function RuleTable() {
   const [expanded, setExpanded] = useState(false);
 
   const rules = [
-    { id: 'R1', condition: 'FDS is HIGH AND Temp is OPTIMAL', output: 'HIGH Fertility', center: 90, note: 'Best case' },
-    { id: 'R2', condition: 'FDS is HIGH AND Temp is COLD', output: 'MEDIUM-HIGH', center: 70, note: 'Good insulation protects' },
-    { id: 'R3', condition: 'FDS is HIGH AND Temp is HOT', output: 'MEDIUM', center: 55, note: 'Dense feathers retain heat' },
-    { id: 'R4', condition: 'FDS is MEDIUM AND Temp is OPTIMAL', output: 'MEDIUM', center: 65, note: '' },
-    { id: 'R5', condition: 'FDS is MEDIUM AND Temp is COLD', output: 'LOW-MEDIUM', center: 50, note: '' },
-    { id: 'R6', condition: 'FDS is MEDIUM AND Temp is HOT', output: 'LOW-MEDIUM', center: 45, note: '' },
-    { id: 'R7', condition: 'FDS is LOW AND Temp is COLD', output: 'LOW', center: 25, note: 'Poor insulation + cold = high stress' },
-    { id: 'R8', condition: 'FDS is LOW AND Temp is OPTIMAL', output: 'MEDIUM-LOW', center: 40, note: '' },
-    { id: 'R9', condition: 'FDS is LOW AND Temp is HOT', output: 'LOW', center: 20, note: 'Worst case' },
-    { id: 'R10', condition: 'FDS is HIGH AND Temp is OPTIMAL AND Humidity is OPTIMAL', output: 'HIGH', center: 95, note: 'Perfect conditions' },
-    { id: 'R11', condition: 'FDS is HIGH AND Humidity is LOW', output: 'MEDIUM-LOW', center: 35, note: 'Humidity penalty' },
-    { id: 'R12', condition: 'FDS is HIGH AND Humidity is HIGH', output: 'MEDIUM-LOW', center: 30, note: 'Humidity penalty' },
-    { id: 'R13', condition: 'TCI ≥ 0.80 (Heat Stress)', output: 'LOW', center: 20, note: 'TCI override rule' },
+    { id: 'R1',  condition: 'FDS is HIGH AND Temp is OPTIMAL',                          output: 'HIGH Fertility', center: 90, note: 'Best case' },
+    { id: 'R2',  condition: 'FDS is HIGH AND Temp is COLD',                             output: 'MEDIUM-HIGH',    center: 70, note: 'Good insulation protects' },
+    { id: 'R3',  condition: 'FDS is HIGH AND Temp is HOT',                              output: 'MEDIUM',         center: 55, note: 'Dense feathers retain heat' },
+    { id: 'R4',  condition: 'FDS is MEDIUM AND Temp is OPTIMAL',                        output: 'MEDIUM',         center: 65, note: '' },
+    { id: 'R5',  condition: 'FDS is MEDIUM AND Temp is COLD',                           output: 'LOW-MEDIUM',     center: 50, note: '' },
+    { id: 'R6',  condition: 'FDS is MEDIUM AND Temp is HOT',                            output: 'LOW-MEDIUM',     center: 45, note: '' },
+    { id: 'R7',  condition: 'FDS is LOW AND Temp is COLD',                              output: 'LOW',            center: 25, note: 'Poor insulation + cold = high stress' },
+    { id: 'R8',  condition: 'FDS is LOW AND Temp is OPTIMAL',                           output: 'MEDIUM-LOW',     center: 40, note: '' },
+    { id: 'R9',  condition: 'FDS is LOW AND Temp is HOT',                               output: 'LOW',            center: 20, note: 'Worst case' },
+    { id: 'R10', condition: 'FDS is HIGH AND Temp is OPTIMAL AND Humidity is OPTIMAL',  output: 'HIGH',           center: 95, note: 'Perfect conditions' },
+    { id: 'R11', condition: 'FDS is HIGH AND Humidity is LOW',                          output: 'MEDIUM-LOW',     center: 35, note: 'Humidity penalty' },
+    { id: 'R12', condition: 'FDS is HIGH AND Humidity is HIGH',                         output: 'MEDIUM-LOW',     center: 30, note: 'Humidity penalty' },
+    { id: 'R13', condition: 'TCI ≥ 0.80 (Heat Stress)',                                 output: 'LOW',            center: 20, note: 'TCI override rule' },
   ];
 
   const visible = expanded ? rules : rules.slice(0, 6);
@@ -298,11 +366,17 @@ function RuleTable() {
               <td className="py-3 px-4 text-muted-foreground">{r.id}</td>
               <td className="py-3 px-4 font-mono text-foreground">{r.condition}</td>
               <td className="py-3 px-4">
-                <span className={`px-2 py-0.5 text-xs border ${
-                  r.center >= 70 ? 'border-green-500/50 text-green-400' :
-                  r.center >= 40 ? 'border-yellow-500/50 text-yellow-400' :
-                  'border-red-500/50 text-red-400'
-                }`}>{r.output}</span>
+                <span
+                  className={`px-2 py-0.5 text-xs border ${
+                    r.center >= 70
+                      ? 'border-green-500/50 text-green-400'
+                      : r.center >= 40
+                      ? 'border-yellow-500/50 text-yellow-400'
+                      : 'border-red-500/50 text-red-400'
+                  }`}
+                >
+                  {r.output}
+                </span>
               </td>
               <td className="py-3 px-4 font-mono text-primary">{r.center}%</td>
               <td className="py-3 px-4 text-muted-foreground italic">{r.note}</td>
@@ -329,27 +403,29 @@ function MembershipFunctionDiagram() {
   const height = 80;
   const pad = 20;
 
-  // Temperature membership functions visualized
-  // cold: trapezoid [0,0,18,22], optimal: triangle [18,21,24], hot: trapezoid [22,30,50,50]
-  const scale = (v: number) => pad + (v / 50) * (width - pad * 2);
+  // Updated temperature membership functions:
+  // cold:    trapezoid (0, 0, 18, 24)  — peaks 0–18, fades to 0 at 24
+  // optimal: triangle  (16, 21, 27)    — peaks at 21, overlaps both neighbors
+  // hot:     trapezoid (21, 30, 50,50) — starts rising at 21, peaks at 30+
+  const scale  = (v: number) => pad + (v / 50) * (width - pad * 2);
   const scaleY = (v: number) => height - pad - v * (height - pad * 2);
 
   const coldPoints = [
-    [scale(0), scaleY(1)],
+    [scale(0),  scaleY(1)],
     [scale(18), scaleY(1)],
-    [scale(22), scaleY(0)],
+    [scale(24), scaleY(0)],
     [scale(50), scaleY(0)],
   ];
 
   const optPoints = [
-    [scale(18), scaleY(0)],
+    [scale(16), scaleY(0)],
     [scale(21), scaleY(1)],
-    [scale(24), scaleY(0)],
+    [scale(27), scaleY(0)],
   ];
 
   const hotPoints = [
-    [scale(0), scaleY(0)],
-    [scale(22), scaleY(0)],
+    [scale(0),  scaleY(0)],
+    [scale(21), scaleY(0)],
     [scale(30), scaleY(1)],
     [scale(50), scaleY(1)],
   ];
@@ -358,23 +434,33 @@ function MembershipFunctionDiagram() {
 
   return (
     <div className="mt-4 space-y-2">
-      <p className="text-xs text-muted-foreground">Temperature membership functions (0–50°C range):</p>
+      <p className="text-xs text-muted-foreground">
+        Temperature membership functions (0–50°C range) — note overlapping boundaries eliminating dead zones:
+      </p>
       <svg width={width} height={height} className="w-full max-w-sm">
         <polyline points={toPath(coldPoints)} fill="none" stroke="#60a5fa" strokeWidth="1.5" />
-        <polyline points={toPath(optPoints)} fill="none" stroke="#4ade80" strokeWidth="1.5" />
-        <polyline points={toPath(hotPoints)} fill="none" stroke="#f87171" strokeWidth="1.5" />
+        <polyline points={toPath(optPoints)}  fill="none" stroke="#4ade80" strokeWidth="1.5" />
+        <polyline points={toPath(hotPoints)}  fill="none" stroke="#f87171" strokeWidth="1.5" />
 
         {/* Labels */}
-        <text x={scale(9)} y={scaleY(1) - 4} fontSize="9" fill="#60a5fa">cold</text>
-        <text x={scale(20)} y={scaleY(1) - 4} fontSize="9" fill="#4ade80">optimal</text>
+        <text x={scale(8)}  y={scaleY(1) - 4} fontSize="9" fill="#60a5fa">cold</text>
+        <text x={scale(19)} y={scaleY(1) - 4} fontSize="9" fill="#4ade80">optimal</text>
         <text x={scale(34)} y={scaleY(1) - 4} fontSize="9" fill="#f87171">hot</text>
 
         {/* Axis */}
         <line x1={pad} y1={height - pad} x2={width - pad} y2={height - pad} stroke="#555" strokeWidth="0.5" />
-        {[0, 18, 24, 50].map((v) => (
+
+        {/* Tick marks — added 21°C as peak marker */}
+        {[0, 18, 21, 24, 50].map((v) => (
           <g key={v}>
-            <line x1={scale(v)} y1={height - pad} x2={scale(v)} y2={height - pad + 4} stroke="#555" strokeWidth="0.5" />
-            <text x={scale(v)} y={height - 4} fontSize="8" fill="#888" textAnchor="middle">{v}°C</text>
+            <line
+              x1={scale(v)} y1={height - pad}
+              x2={scale(v)} y2={height - pad + 4}
+              stroke="#555" strokeWidth="0.5"
+            />
+            <text x={scale(v)} y={height - 4} fontSize="8" fill="#888" textAnchor="middle">
+              {v}°C
+            </text>
           </g>
         ))}
       </svg>
