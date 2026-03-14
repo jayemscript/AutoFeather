@@ -1,13 +1,8 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { useAuthCheck } from '@/hooks/use-auth-check.hooks';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card';
 import { formatDate } from '@syntaxsentinel/date-utils';
 import PredictTable from './prediction/predict-table';
 import Analytics from './prediction/analytics';
@@ -17,22 +12,33 @@ export default function DashboardPageContent() {
 
   return (
     <div className="p-6">
-      <div className="w-full  ">
-        <div className="flex flex-row items-center justify-between p-6">
+      <div className="w-full">
+        {/* ── Header — centered ── */}
+        <div className="flex flex-col items-center text-center gap-3 py-8">
           <div>
-            <h2 className="text-2xl font-semibold capitalize">
+            <p className="text-2xl font-bold leading-tight">AutoFeather</p>
+            <p className="text-sm font-medium text-primary mt-0.5">
+              Predict Fertility Precisely.
+            </p>
+            <p className="text-xs text-muted-foreground max-w-sm mt-1 leading-relaxed">
+              Evaluates feather density and thermal comfort through a fuzzy
+              logic inference model — turning raw poultry sensor data into
+              actionable fertility forecasts.
+            </p>
+          </div>
+
+          <div className="mt-2 pt-4 border-t w-full max-w-sm">
+            <h2 className="text-lg font-semibold capitalize">
               Welcome, {user?.username || 'User'}
             </h2>
-
-            <div className="text-muted-foreground mt-1">
-              <div className="flex flex-col items-start justify-center">
-                <span>Here’s an overview of your dashboard.</span>
-                <span>as of {formatDate.longDate(new Date())}</span>
-              </div>
-            </div>
+            <p className="text-sm text-muted-foreground">
+              Here's an overview of your dashboard — as of{' '}
+              {formatDate.longDate(new Date())}
+            </p>
           </div>
         </div>
 
+        {/* ── Content ── */}
         <div className="m-5 p-5 space-y-4">
           <Analytics />
           <PredictTable />

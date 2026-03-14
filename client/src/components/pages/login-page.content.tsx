@@ -25,7 +25,7 @@ const LoginPageContent = async () => {
   // }
 
   return (
-    <div className="flex min-h-screen font-mono bg-[var(--color-background)] text-[var(--color-foreground)]">
+    <div className="flex min-h-screen font-mono bg-(--color-background) text-(--color-foreground)">
       <ClearLocalStorage />
 
       {/* Left side - branding and info */}
@@ -34,38 +34,38 @@ const LoginPageContent = async () => {
           {/* Logo and header */}
           <div className="flex items-center gap-4">
             <img
-              src="/images/autofeather-logo.png"
+              src="/images/main_logo1.png"
               alt="AutoFeather Logo"
-              className="w-16 h-16 rounded-lg border border-[var(--color-border)] shadow-sm"
+              className="w-40 h-40 rounded-lg  object-contain p-2"
             />
             <div>
-              <h1 className="text-4xl font-bold text-[var(--color-card-foreground)]">
+              <h1 className="text-4xl font-bold text-(--color-card-foreground)">
                 AutoFeather
               </h1>
-              <p className="text-[var(--color-muted-foreground)] font-medium mt-1">
+              <p className="text-(--color-muted-foreground) font-medium mt-1">
                 Real-Time Poultry Monitoring and Automation
               </p>
             </div>
           </div>
 
           {/* Description */}
-          <p className="text-[var(--color-muted-foreground)] max-w-md leading-relaxed">
+          <p className="text-(--color-muted-foreground) max-w-md leading-relaxed">
             Monitor feather growth, thermal comfort, egg fertility, and automate
             environmental controls efficiently with AutoFeather.
           </p>
 
           {/* Feature Cards */}
           <div className="space-y-4">
-            <Card className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl hover:bg-[var(--color-accent)] transition">
+            <Card className="bg-(--color-card) border border-(--color-border) rounded-xl hover:bg-(--color-accent) transition">
               <CardContent className="p-4 flex items-start gap-4">
-                <div className="p-2 bg-[var(--color-secondary)] rounded-lg">
-                  <Activity className="w-6 h-6 text-[var(--color-primary)]" />
+                <div className="p-2 bg-(--color-secondary) rounded-lg">
+                  <Activity className="w-6 h-6 text-(--color-primary)" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg text-[var(--color-card-foreground)]">
+                  <h3 className="font-semibold text-lg text-(--color-card-foreground)">
                     Feather Density Tracking
                   </h3>
-                  <p className="text-[var(--color-muted-foreground)] text-sm">
+                  <p className="text-(--color-muted-foreground) text-sm">
                     Track feather coverage to ensure bird health and detect
                     stress or disease early.
                   </p>
@@ -73,16 +73,16 @@ const LoginPageContent = async () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl hover:bg-[var(--color-accent)] transition">
+            <Card className="bg-(--color-card) border border-(--color-border) rounded-xl hover:bg-(--color-accent) transition">
               <CardContent className="p-4 flex items-start gap-4">
-                <div className="p-2 bg-[var(--color-secondary)] rounded-lg">
-                  <Wind className="w-6 h-6 text-[var(--color-primary)]" />
+                <div className="p-2 bg-(--color-secondary) rounded-lg">
+                  <Wind className="w-6 h-6 ext-(--color-primary)" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg text-[var(--color-card-foreground)]">
+                  <h3 className="font-semibold text-lg text-(--color-card-foreground)">
                     Thermal Comfort Monitoring
                   </h3>
-                  <p className="text-[var(--color-muted-foreground)] text-sm">
+                  <p className="text-(--color-muted-foreground) text-sm">
                     Maintain optimal temperature and ventilation to reduce
                     stress and improve productivity.
                   </p>
@@ -90,16 +90,16 @@ const LoginPageContent = async () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl hover:bg-[var(--color-accent)] transition">
+            <Card className="bg-(--color-card) border border-(--color-border) rounded-xl hover:bg-(--color-accent) transition">
               <CardContent className="p-4 flex items-start gap-4">
-                <div className="p-2 bg-[var(--color-secondary)] rounded-lg">
-                  <Bell className="w-6 h-6 text-[var(--color-primary)]" />
+                <div className="p-2 bg-(--color-secondary) rounded-lg">
+                  <Bell className="w-6 h-6 ext-(--color-primary)" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg text-[var(--color-card-foreground)]">
+                  <h3 className="font-semibold text-lg text-(--color-card-foreground)">
                     Alerts & Notifications
                   </h3>
-                  <p className="text-[var(--color-muted-foreground)] text-sm">
+                  <p className="text-(--color-muted-foreground) text-sm">
                     Receive instant alerts for critical environmental changes or
                     system malfunctions.
                   </p>
@@ -113,16 +113,16 @@ const LoginPageContent = async () => {
       {/* Right side - login form */}
       <div className="flex w-full md:w-1/2 items-center justify-center p-10 relative overflow-hidden">
         {/* Overlay */}
-        <div className="absolute inset-0 bg-[var(--color-background)]/80 z-0" />
+        <div className="absolute inset-0 bg-background/80 z-0" />
 
         {/* Login form container */}
         <div className="w-full max-w-md relative z-10">
           {/* Header */}
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-[var(--color-card-foreground)]">
+            <h2 className="text-3xl font-bold text-(--color-card-foreground)">
               AutoFeather Login
             </h2>
-            <p className="text-sm text-[var(--color-muted-foreground)] mt-2">
+            <p className="text-sm text-(--color-muted-foreground) mt-2">
               Access your account to manage and monitor your poultry systems.
             </p>
           </div>

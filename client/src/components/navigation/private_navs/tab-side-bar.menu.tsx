@@ -1,11 +1,12 @@
 import { MdDashboard } from 'react-icons/md';
-import { FaClipboardList, FaBullhorn, FaUser } from 'react-icons/fa';
+import { FaClipboardList, FaBullhorn, FaUser, FaFeather } from 'react-icons/fa';
 import {
   FaUserShield,
   FaTemperatureFull,
-  FaDroplet,
-  FaFlask,
-  FaGauge,
+  FaUsers,
+  FaShield,
+  FaKey,
+  FaScroll,
 } from 'react-icons/fa6';
 
 interface MenuItems {
@@ -15,7 +16,6 @@ interface MenuItems {
   role: string[];
 }
 
-// Icon mapping based on labels for construction management
 const getIconForLabel = (label: string): React.ReactNode => {
   const iconMap: Record<string, React.ReactNode> = {
     Dashboard: <MdDashboard />,
@@ -24,12 +24,16 @@ const getIconForLabel = (label: string): React.ReactNode => {
     Notifications: <FaBullhorn />,
     Announcements: <FaBullhorn />,
     'Temperature Monitoring': <FaTemperatureFull />,
+    'Admin - Users': <FaUsers />,
+    'Admin - Roles': <FaShield />,
+    'Admin - Permissions': <FaKey />,
+    'Admin - System Audit Logs': <FaScroll />,
+    'Chicken Breed Library': <FaFeather />,
   };
 
   return iconMap[label] || <FaClipboardList />;
 };
 
-// Base menu items configuration
 const menuConfig = {
   dashboard: { path: '/dashboard', label: 'Dashboard', role: [] },
   profile: { path: '/profile', label: 'Account Profile', role: [] },
@@ -57,7 +61,6 @@ const menuConfig = {
     role: ['Administrator', 'Moderator', 'Researcher', 'Monitoring-Manager'],
   },
 
-  // // new routes
   temperatureMonitoring: {
     path: '/temperature-monitoring',
     label: 'Temperature Monitoring',
@@ -71,7 +74,6 @@ const menuConfig = {
   },
 };
 
-// Helper function to create menu items with icons
 const createMenuItems = (keys: string[]): MenuItems[] => {
   return keys.map((key) => {
     const config = menuConfig[key as keyof typeof menuConfig];
@@ -82,7 +84,6 @@ const createMenuItems = (keys: string[]): MenuItems[] => {
   });
 };
 
-// Export menu items for each role
 export const AdministrativeMenuItems: MenuItems[] = createMenuItems([
   'dashboard',
   'adminUsers',

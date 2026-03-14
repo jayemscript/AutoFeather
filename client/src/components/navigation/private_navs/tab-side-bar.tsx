@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Settings, HelpCircle, Search } from 'lucide-react';
 import { useAuthCheck } from '@/hooks/use-auth-check.hooks';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   Tooltip,
   TooltipContent,
@@ -80,20 +81,6 @@ export default function TabSideBar({ isOpen, onClose }: TabSideBarProps) {
     }
   }, [user, pathname, router]);
 
-  // useEffect(() => {
-  //   const handleClickOutside = (event: MouseEvent) => {
-  //     if (!onClose) return;
-  //     if (
-  //       sidebarRef.current &&
-  //       !sidebarRef.current.contains(event.target as Node)
-  //     ) {
-  //       onClose();
-  //     }
-  //   };
-  //   document.addEventListener('mousedown', handleClickOutside);
-  //   return () => document.removeEventListener('mousedown', handleClickOutside);
-  // }, [onClose]);
-
   const hasAccess = (roles: string[]) => {
     if (!user?.roleId.role) return false;
     if (roles.length === 0) return true;
@@ -121,16 +108,29 @@ export default function TabSideBar({ isOpen, onClose }: TabSideBarProps) {
       <TooltipWrapper content={item.label} isOpen={true}>
         <Link
           href={item.path}
-          className={`flex items-center space-x-3 p-2 rounded-md cursor-pointer transition-colors duration-200 ${
+          className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 ${
             isActive
-              ? 'text-black bg-background dark:bg-primary  text-[0.8em] dark:text-gray-700'
-              : 'text-black dark:text-black hover:bg-zinc-300 hover:text-black dark:hover:bg-zinc-200 dark:hover:text-black bg-white text-[0.8em]'
+              ? 'text-black bg-background dark:bg-primary dark:text-gray-700 shadow-sm font-medium'
+              : 'text-black dark:text-black bg-white hover:bg-zinc-300 hover:text-black dark:hover:bg-zinc-200 dark:hover:text-black'
           }`}
         >
-          <div className="flex items-center justify-center mr-3">
+          {/* Icon container — fixed width keeps labels aligned */}
+          <span
+            className={`flex items-center justify-center w-7 h-7 rounded-md flex-shrink-0 transition-colors duration-200 ${
+              isActive
+                ? 'bg-primary/10 dark:bg-gray-700/10'
+                : 'bg-zinc-100 dark:bg-zinc-200 group-hover:bg-zinc-200 dark:group-hover:bg-zinc-300'
+            }`}
+          >
             {item.icon}
-          </div>
-          <span className="text-[0.8em]">{item.label}</span>
+          </span>
+
+          {/* Active indicator bar on the left edge */}
+          {isActive && (
+            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-primary dark:bg-gray-700 rounded-r-full" />
+          )}
+
+          <span className="text-[0.8em] truncate">{item.label}</span>
         </Link>
       </TooltipWrapper>
     );
@@ -143,10 +143,12 @@ export default function TabSideBar({ isOpen, onClose }: TabSideBarProps) {
   ) => (
     <Button
       variant="default"
-      className="text-white bg-transparent hover:bg-neutral-700 cursor-pointer w-full justify-start px-4 py-2 rounded-md transition-colors duration-200"
+      className="text-white bg-transparent hover:bg-neutral-700 cursor-pointer w-full justify-start px-3 py-2 rounded-md transition-colors duration-200 gap-3"
       onClick={onClick}
     >
-      {React.cloneElement(icon, { className: 'h-4 w-4 mr-2' } as any)}
+      <span className="flex items-center justify-center w-7 h-7 rounded-md bg-white/10 flex-shrink-0">
+        {React.cloneElement(icon, { className: 'h-4 w-4' } as any)}
+      </span>
       <span className="text-[0.8em]">{label}</span>
     </Button>
   );
@@ -161,41 +163,58 @@ export default function TabSideBar({ isOpen, onClose }: TabSideBarProps) {
         ) : (
           <div
             ref={sidebarRef}
-            className="flex flex-col w-64 h-full p-5 space-y-6 shadow-lg bg-primary dark:bg-background text-accent dark:text-white relative"
+            className="flex flex-col w-64 h-full bg-primary dark:bg-background text-accent dark:text-white shadow-lg"
           >
+            {/* ── Header ── */}
             <div
-              className="flex items-center space-x-2 mb-6 cursor-pointer"
+              className="flex items-center gap-2.5 px-5 py-5 cursor-pointer border-b border-white/10 dark:border-white/5"
               onClick={() => router.push('/')}
             >
-              <img src="/images/logo.jpg" alt="Logo" className="h-8 w-8" />
-              {isOpen && (
-                <span className="font-bold text-[0.7em]">AutoFeather</span>
-              )}
+              {/* Logo mark */}
+              <span className="flex items-center justify-center rounded-md overflow-hidden shrink-0">
+                <Image
+                  src="/images/main_logo1.png"
+                  alt="AutoFeather logo"
+                  width={20}
+                  height={20}
+                  className="object-contain w-full h-full"
+                />
+              </span>
+              <span className="font-bold text-[0.75em] tracking-wide uppercase text-white dark:text-white">
+                AutoFeather
+              </span>
             </div>
 
-            {/* Menu Items */}
-            <div className="flex-1 overflow-y-auto space-y-4">
+            {/* ── Navigation label ── */}
+            <div className="px-5 pt-5 pb-1">
+              <span className="text-[0.65em] font-semibold uppercase tracking-widest text-white/50 dark:text-white/40">
+                Navigation
+              </span>
+            </div>
+
+            {/* ── Menu Items ── */}
+            <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-1">
               {menuItems.map(
                 (item) =>
                   hasAccess(item.role) && (
-                    <div key={item.path}>{renderMenuItem(item)}</div>
+                    <div key={item.path} className="relative">
+                      {renderMenuItem(item)}
+                    </div>
                   ),
               )}
-            </div>
+            </nav>
 
-            {/* Bottom Section */}
-            <div className="mt-auto flex flex-col space-y-2">
-              {/* {renderBottomButton(<Settings />, 'Settings', () =>
-                router.push('/settings'),
-              )} */}
+            {/* ── Bottom Section ── */}
+            <div className="px-3 pb-4 pt-2 flex flex-col gap-1">
+              <Separator className="mb-3 opacity-20" />
+
               {renderBottomButton(<HelpCircle />, 'Get Help', () =>
                 router.push('/help'),
               )}
-              {/* {renderBottomButton(<Search />, 'Search', () =>
-                setSearchOpen(true),
-              )} */}
-              <Separator className="my-2" />
-              <SideBarProfile isOpen={true} />
+
+              <div className="mt-2 px-1">
+                <SideBarProfile isOpen={true} />
+              </div>
             </div>
           </div>
         )}

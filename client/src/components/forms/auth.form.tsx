@@ -138,9 +138,7 @@ const AuthForm = () => {
             {/* buttons */}
             <Button
               type="submit"
-              className="w-full mt-2 
-             bg-primary text-darkblue hover:bg-slate-300 
-             dark:bg-primary dark:text-cream dark:hover:bg-darkblue cursor-pointer"
+              className="w-full mt-2 cursor-pointer"
             >
               Login
             </Button>

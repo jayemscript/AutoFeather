@@ -54,7 +54,6 @@ export default function TemperatureContent() {
   const [loading, setLoading] = useState<boolean>(false);
   const [isSimulationRunning, setIsSimulationRunning] = useState(false);
 
-  // Prepare chart data from temperature history
   const chartData = useMemo(() => {
     return tempHistory
       .slice()
@@ -84,10 +83,8 @@ export default function TemperatureContent() {
 
       setCurrentTemp(tempData);
       setTempHistory((prev) => [tempData, ...prev].slice(0, 20));
-
       setIsSimulationRunning(true);
 
-      // Determine status based on temperature
       if (tempData.temperature < 25) {
         setStatus('low');
       } else if (tempData.temperature > 32) {
@@ -174,7 +171,7 @@ export default function TemperatureContent() {
 
   if (!socket || !isConnected) {
     return (
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="container mx-auto p-6">
         <Alert variant="destructive">
           <WifiOff className="h-4 w-4" />
           <AlertDescription>
@@ -186,14 +183,14 @@ export default function TemperatureContent() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
+    <div className="flex flex-col h-full p-6 gap-4 overflow-hidden">
+      {/* ── Page Header ── */}
+      <div className="flex items-center justify-between flex-wrap gap-4 shrink-0">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-2xl font-bold tracking-tight">
             Temperature Monitoring
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Real-time Poultry temperature tracking
           </p>
         </div>
@@ -210,7 +207,7 @@ export default function TemperatureContent() {
               onClick={handleStop}
               disabled={loading}
               variant="destructive"
-              size="lg"
+              size="sm"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -224,7 +221,7 @@ export default function TemperatureContent() {
               onClick={handleStart}
               disabled={loading}
               variant="default"
-              size="lg"
+              size="sm"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -237,246 +234,274 @@ export default function TemperatureContent() {
         </div>
       </div>
 
-      {/* Main Temperature Display */}
-      <Card className="border-2">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Thermometer className="w-5 h-5" />
-            Current Temperature
-          </CardTitle>
-          <CardDescription>
-            Poultry Environment temperature sensor
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {currentTemp ? (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div
-                    className={`text-6xl max-sm:text-2xl font-bold ${getStatusColor()}`}
+      {/* ── Two-Panel Layout ── */}
+      <div className="flex flex-1 gap-4 overflow-hidden min-h-0 flex-col lg:flex-row">
+        {/* ── LEFT PANEL — Current reading, stats, chart ── */}
+        <div className="flex flex-col gap-4 lg:w-[58%] overflow-y-auto">
+          {/* Current Temperature Card */}
+          <Card className="border-2 shrink-0">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Thermometer className="w-4 h-4" />
+                Current Temperature
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Poultry Environment temperature sensor
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {currentTemp ? (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className={`text-5xl font-bold ${getStatusColor()}`}>
+                        {currentTemp.temperature}°C
+                      </div>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">
+                          {formatDate.timeOnly(currentTemp.timestamp)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <Badge variant={getStatusBadgeVariant()} className="mb-2">
+                        {status.toUpperCase()}
+                      </Badge>
+                      <div className="text-xs text-muted-foreground">
+                        {currentTemp.sensorId}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Threshold row */}
+                  <div className="grid grid-cols-3 gap-3 pt-3 border-t">
+                    <div className="text-center">
+                      <div className="text-xs text-muted-foreground mb-1">
+                        Low Threshold
+                      </div>
+                      <div className="text-base font-semibold text-blue-500">
+                        25°C
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xs text-muted-foreground mb-1">
+                        Optimal Range
+                      </div>
+                      <div className="text-base font-semibold text-primary">
+                        25–32°C
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xs text-muted-foreground mb-1">
+                        High Threshold
+                      </div>
+                      <div className="text-base font-semibold text-destructive">
+                        32°C
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-10 text-muted-foreground">
+                  <Droplets className="w-10 h-10 mx-auto mb-3 opacity-50" />
+                  <p className="text-sm">Waiting for temperature data...</p>
+                  <p className="text-xs mt-1">
+                    Click "Start Monitoring" to begin
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Stats Row */}
+          <div className="grid grid-cols-3 gap-3 shrink-0">
+            <Card>
+              <CardHeader className="pb-2 pt-4 px-4">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
+                  Average Temp
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-4 pb-4">
+                <div className="text-xl font-bold">
+                  {tempHistory.length > 0
+                    ? (
+                        tempHistory.reduce((sum, r) => sum + r.temperature, 0) /
+                        tempHistory.length
+                      ).toFixed(2)
+                    : '0.00'}
+                  °C
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2 pt-4 px-4">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
+                  Highest Temp
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-4 pb-4">
+                <div className="text-xl font-bold text-destructive">
+                  {tempHistory.length > 0
+                    ? Math.max(
+                        ...tempHistory.map((r) => r.temperature),
+                      ).toFixed(2)
+                    : '0.00'}
+                  °C
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2 pt-4 px-4">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
+                  Lowest Temp
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-4 pb-4">
+                <div className="text-xl font-bold text-blue-500">
+                  {tempHistory.length > 0
+                    ? Math.min(
+                        ...tempHistory.map((r) => r.temperature),
+                      ).toFixed(2)
+                    : '0.00'}
+                  °C
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Chart */}
+          <Card className="flex-1">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Activity className="w-4 h-4" />
+                Temperature Trend
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Real-time visualization (last 20 readings)
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="px-2 sm:px-6">
+              {chartData.length > 0 ? (
+                <ChartContainer
+                  config={chartConfig}
+                  className="aspect-auto h-45 w-full"
+                >
+                  <LineChart
+                    accessibilityLayer
+                    data={chartData}
+                    margin={{ left: 12, right: 12 }}
                   >
-                    {currentTemp.temperature}°C
-                  </div>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Clock className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">
-                      {formatDate.timeOnly(currentTemp.timestamp)}
-                    </span>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <Badge variant={getStatusBadgeVariant()} className="mb-2">
-                    {status.toUpperCase()}
-                  </Badge>
-                  <div className="text-sm text-muted-foreground">
-                    {currentTemp.sensorId}
-                  </div>
-                </div>
-              </div>
-
-              {/* Status Indicators */}
-              <div className="grid grid-cols-3 gap-4 pt-4 border-t">
-                <div className="text-center">
-                  <div className="text-sm text-muted-foreground mb-1">
-                    Low Threshold
-                  </div>
-                  <div className="text-lg font-semibold text-blue-500">
-                    25°C
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-sm text-muted-foreground mb-1">
-                    Optimal Range
-                  </div>
-                  <div className="text-lg font-semibold text-primary">
-                    25-32°C
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-sm text-muted-foreground mb-1">
-                    High Threshold
-                  </div>
-                  <div className="text-lg font-semibold text-destructive">
-                    32°C
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              <Droplets className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>Waiting for temperature data...</p>
-              <p className="text-sm mt-2">
-                Click &quot;Start Monitoring&quot; to begin monitoring
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Temperature Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="w-5 h-5" />
-            Temperature Trend
-          </CardTitle>
-          <CardDescription>
-            Real-time temperature visualization (last 20 readings)
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="px-2 sm:p-6">
-          {chartData.length > 0 ? (
-            <ChartContainer
-              config={chartConfig}
-              className="aspect-auto h-[150px] w-full"
-            >
-              <LineChart
-                accessibilityLayer
-                data={chartData}
-                margin={{
-                  left: 12,
-                  right: 12,
-                }}
-              >
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey="timestamp"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  minTickGap={32}
-                  tick={{ fontSize: 12 }}
-                />
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      className="w-[180px]"
-                      formatter={(value, name, props) => {
-                        const temp = Number(value);
-                        return [`${temp.toFixed(2)}°C`, 'Temperature'];
-                      }}
+                    <CartesianGrid vertical={false} />
+                    <XAxis
+                      dataKey="timestamp"
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={8}
+                      minTickGap={32}
+                      tick={{ fontSize: 11 }}
                     />
-                  }
-                />
-                <Line
-                  dataKey="temperature"
-                  type="monotone"
-                  stroke="#3b82f6"
-                  strokeWidth={3}
-                  dot={{
-                    fill: '#3b82f6',
-                    r: 4,
-                  }}
-                  activeDot={{
-                    r: 6,
-                    fill: '#2563eb',
-                  }}
-                />
-              </LineChart>
-            </ChartContainer>
-          ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              <p>No data available for chart</p>
-              <p className="text-sm mt-2">
-                Start monitoring to see temperature trends
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                    <ChartTooltip
+                      content={
+                        <ChartTooltipContent
+                          className="w-45"
+                          formatter={(value) => [
+                            `${Number(value).toFixed(2)}°C`,
+                            'Temperature',
+                          ]}
+                        />
+                      }
+                    />
+                    <Line
+                      dataKey="temperature"
+                      type="monotone"
+                      stroke="#3b82f6"
+                      strokeWidth={3}
+                      dot={{ fill: '#3b82f6', r: 4 }}
+                      activeDot={{ r: 6, fill: '#2563eb' }}
+                    />
+                  </LineChart>
+                </ChartContainer>
+              ) : (
+                <div className="text-center py-10 text-muted-foreground text-sm">
+                  <p>No data available yet</p>
+                  <p className="text-xs mt-1">Start monitoring to see trends</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Temperature History */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="w-5 h-5" />
-            Recent Readings
-          </CardTitle>
-          <CardDescription>Last 20 temperature measurements</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {tempHistory.length > 0 ? (
-            <div
-              className="overflow-y-auto"
-              style={{ maxHeight: '30vh', minHeight: '200px' }}
-            >
-              <div className="space-y-2">
-                {tempHistory.map((reading, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Thermometer className="w-4 h-4 text-muted-foreground" />
-                      <span className="font-semibold max-sm:text-sm">
-                        {reading.temperature}°C
-                      </span>
-                    </div>
-                    <div className="text-sm text-muted-foreground flex items-center gap-2">
-                      <span className="max-sm:text-[0.7em]">
+        {/* ── RIGHT PANEL — Logs / Recent Readings ── */}
+        <div className="flex flex-col lg:w-[42%] min-h-0">
+          <Card className="flex flex-col flex-1 min-h-0">
+            <CardHeader className="pb-2 shrink-0">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Activity className="w-4 h-4" />
+                Recent Readings
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Last 20 temperature measurements
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-hidden p-0">
+              {tempHistory.length > 0 ? (
+                <div className="h-full overflow-y-auto px-4 pb-4 space-y-1.5">
+                  {tempHistory.map((reading, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        {/* Index badge */}
+                        <span className="text-[0.65em] font-mono text-muted-foreground w-5 text-right shrink-0">
+                          {tempHistory.length - index}
+                        </span>
+                        <Thermometer className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                        <span
+                          className={`font-semibold text-sm ${
+                            reading.temperature < 25
+                              ? 'text-blue-500'
+                              : reading.temperature > 32
+                                ? 'text-destructive'
+                                : 'text-primary'
+                          }`}
+                        >
+                          {reading.temperature}°C
+                        </span>
+                        <Badge
+                          variant={
+                            reading.temperature < 25
+                              ? 'secondary'
+                              : reading.temperature > 32
+                                ? 'destructive'
+                                : 'default'
+                          }
+                          className="text-[0.6em] h-4 px-1.5"
+                        >
+                          {reading.temperature < 25
+                            ? 'LOW'
+                            : reading.temperature > 32
+                              ? 'HIGH'
+                              : 'OK'}
+                        </Badge>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
                         {formatDate.readableDateTime(reading.timestamp)}
-                      </span>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <p>No temperature history available</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Average Temp</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {tempHistory.length > 0
-                ? (
-                    tempHistory.reduce((sum, r) => sum + r.temperature, 0) /
-                    tempHistory.length
-                  ).toFixed(2)
-                : '0.00'}
-              °C
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Highest Temp</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {tempHistory.length > 0
-                ? Math.max(...tempHistory.map((r) => r.temperature)).toFixed(2)
-                : '0.00'}
-              °C
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Lowest Temp</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {tempHistory.length > 0
-                ? Math.min(...tempHistory.map((r) => r.temperature)).toFixed(2)
-                : '0.00'}
-              °C
-            </div>
-          </CardContent>
-        </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-muted-foreground pb-8">
+                  <Droplets className="w-10 h-10 mb-3 opacity-40" />
+                  <p className="text-sm">No readings yet</p>
+                  <p className="text-xs mt-1">Start monitoring to see logs</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
