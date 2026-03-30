@@ -1,4 +1,5 @@
 ### change the code in requiremnts.txt
+use python 3.12
 
 # for Raspberry pi with AdaFruit for Dht22
 
@@ -41,8 +42,8 @@ sysv_ipc==1.1.0
 typing_extensions==4.13.1
 
 # PyTorch (CPU, Pi 4 compatible)
-torch==1.13.1
-torchvision==0.14.1
+torch==2.0.1
+torchvision==0.15.2
 
 httpx
 ```
