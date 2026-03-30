@@ -13,7 +13,8 @@ MODEL_PATH = os.getenv("MODEL_PATH", str(BASE_DIR.parent / "model" / "final-vers
 # Server Configuration
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", 5000))
-RELOAD = os.getenv("RELOAD", "True").lower() == "true"
+# RELOAD = os.getenv("RELOAD", "True").lower() == "true"
+RELOAD = os.getenv("RELOAD", "False").lower() == "true"  # was "True", change to "False"
 
 # CORS Configuration
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")

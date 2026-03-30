@@ -1,6 +1,23 @@
-import Adafruit_DHT
+import random
 from datetime import datetime
 
+# Mock Adafruit_DHT for development on unsupported platforms
+class MockDHT:
+    DHT22 = "DHT22"
+
+    @staticmethod
+    def read_retry(sensor, pin):
+        """
+        Returns random values for temperature and humidity within optimal ranges:
+        Temperature: 18°C - 24°C
+        Humidity: 45% - 65%
+        """
+        temperature = random.uniform(18, 24)
+        humidity = random.uniform(45, 65)
+        return humidity, temperature
+
+# Use the mock instead of the real library
+Adafruit_DHT = MockDHT()
 DHT_SENSOR = Adafruit_DHT.DHT22
 DHT_PIN = 4
 
@@ -54,3 +71,9 @@ class SensorService:
                 "message": "Failed to read humidity from sensor",
                 "data": None
             }
+
+# Example usage:
+if __name__ == "__main__":
+    service = SensorService()
+    print(service.get_temperature())
+    print(service.get_humidity())
